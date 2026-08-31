@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rekap Absensi di Sistem LUNAPOS</title>
+  <title>Rekap Absensi di sistem LUNAPOS</title>
+  <!-- Library XLSX (SheetJS) untuk baca & tulis Excel -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <!-- Library jsPDF & autoTable untuk cetak PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -73,6 +77,7 @@
     .btn-group {
       display: flex;
       gap: 8px;
+      flex-wrap: wrap;
     }
     .btn {
       padding: 8px 14px;
@@ -83,6 +88,8 @@
       font-size: 13px;
       transition: all 0.2s;
     }
+    .btn-tutorial { background-color: #f59e0b; color: white; }
+    .btn-tutorial:hover { background-color: #d97706; }
     .btn-add { background-color: #0284c7; color: white; }
     .btn-add:hover { background-color: #0369a1; }
     .btn-del { background-color: #ef4444; color: white; }
@@ -91,6 +98,11 @@
     .btn-reset:hover { background-color: #475569; }
     .btn-reset-all { background-color: #dc2626; color: white; padding: 10px 18px; font-size: 14px; }
     .btn-reset-all:hover { background-color: #b91c1c; }
+    
+    .btn-export-excel { background-color: #10b981; color: white; }
+    .btn-export-excel:hover { background-color: #059669; }
+    .btn-export-pdf { background-color: #f43f5e; color: white; }
+    .btn-export-pdf:hover { background-color: #e11d48; }
     
     .upload-area {
       border: 2px dashed #3b82f6;
@@ -108,8 +120,11 @@
 
     .action-bar {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .stats-grid {
@@ -179,7 +194,6 @@
       color: #1d4ed8;
     }
 
-    /* Footer Kredit */
     .footer-credit {
       text-align: center;
       margin-top: 32px;
@@ -192,8 +206,13 @@
       color: #1e293b;
       letter-spacing: 0.5px;
     }
+    .footer-credit .last-update {
+      margin-top: 4px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
 
-    /* Modal Popup Detail */
+    /* Modal Overlay & Base */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -257,6 +276,34 @@
       border-radius: 4px;
       margin-left: 4px;
     }
+
+    /* Style Khusus Tutorial */
+    .tutorial-step {
+      background: #f8fafc;
+      border-left: 4px solid #3b82f6;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      border-radius: 0 6px 6px 0;
+    }
+    .tutorial-step h4 {
+      margin: 0 0 6px 0;
+      color: #1e293b;
+      font-size: 15px;
+    }
+    .tutorial-step p {
+      margin: 0;
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.5;
+    }
+    .tutorial-badge {
+      display: inline-block;
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
@@ -272,6 +319,7 @@
         <span style="font-size: 13px; color: #64748b;">(Sistem mencocokkan jam masuk aktual secara otomatis ke jadwal terdekat)</span>
       </div>
       <div class="btn-group">
+        <button class="btn btn-tutorial" onclick="bukaModalTutorial()">📖 Tutorial Penggunaan</button>
         <button class="btn btn-reset" onclick="resetShiftToDefault()">🔄 Reset Shift</button>
         <button class="btn btn-add" onclick="tambahBarisShift()">+ Tambah Shift</button>
       </div>
@@ -301,7 +349,11 @@
   <!-- 3. Dashboard Hasil Rekap -->
   <div id="dashboard" style="display: none;">
     <div class="action-bar">
-      <button class="btn btn-reset-all" onclick="resetSemuaData()">🗑️ Reset / Hapus File & Data</button>
+      <div class="btn-group">
+        <button class="btn btn-export-excel" onclick="eksporKeExcel()">📥 Unduh Rekap (Excel)</button>
+        <button class="btn btn-export-pdf" onclick="eksporKePDF()">📄 Cetak / Unduh (PDF)</button>
+      </div>
+      <button class="btn btn-reset-all" onclick="resetSemuaData()">🗑️ Reset Data</button>
     </div>
 
     <div class="stats-grid">
@@ -343,10 +395,66 @@
     </table>
   </div>
 
-  <!-- Footer Kredit Pembuat -->
+  <!-- Footer Kredit Pembuat & Info Last Update -->
   <div class="footer-credit">
     Created by <strong>EMBERCINCAU</strong>
-    Last Update 2026-08-31
+    <div class="last-update" id="lastUpdateText">Last Updated: August 2026</div>
+  </div>
+</div>
+
+<!-- Modal Popup Tutorial Penggunaan -->
+<div id="tutorialModal" class="modal-overlay" onclick="if(event.target === this) tutupModalTutorial();">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>📖 Panduan Lengkap Penggunaan Rekap Absensi LUNAPOS</h3>
+      <button class="modal-close" onclick="tutupModalTutorial()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="tutorial-step">
+        <h4>1. Sesuaikan Master Jadwal Shift</h4>
+        <p>
+          Atur jam masuk resmi outlet Anda untuk hari <strong>Weekday (Senin–Jumat)</strong> dan <strong>Weekend (Sabtu–Minggu)</strong>. 
+          Gunakan tombol <span class="tutorial-badge">+ Tambah Shift</span> bila memiliki sesi jam kerja tambahan.
+        </p>
+      </div>
+
+      <div class="tutorial-step">
+        <h4>2. Atur Toleransi Keterlambatan (Opsional)</h4>
+        <p>
+          Tentukan batas toleransi keterlambatan (dalam menit). Misalnya, jika diisi <strong>15 Menit</strong>, maka karyawan yang datang telat di bawah 15 menit tidak akan dihitung melanggar jam masuk.
+        </p>
+      </div>
+
+      <div class="tutorial-step">
+        <h4>3. Unggah File Excel Absensi LUNAPOS</h4>
+        <p>
+          Pilih atau tarik file Excel laporan absensi LUNAPOS (format <span class="tutorial-badge">.xlsx</span> atau <span class="tutorial-badge">.csv</span>) langsung ke kotak upload. Format kolom standar yang terbaca:
+          <br>
+          <span class="tutorial-badge">Nama Karyawan</span> | <span class="tutorial-badge">Outlet</span> | <span class="tutorial-badge">Tanggal</span> | <span class="tutorial-badge">Absensi Masuk</span> | <span class="tutorial-badge">Total Jam Kerja</span>
+        </p>
+      </div>
+
+      <div class="tutorial-step">
+        <h4>4. Lihat Ringkasan & Filter Outlet</h4>
+        <p>
+          Sistem otomatis mengagregasi total kehadiran, total akumulasi jam kerja, frekuensi keterlambatan, dan total menit telat. Anda dapat menyaring data per outlet pada menu dropdown <strong>Filter Outlet</strong>.
+        </p>
+      </div>
+
+      <div class="tutorial-step">
+        <h4>5. Klik Nama Karyawan untuk Log Detail</h4>
+        <p>
+          Klik pada nama karyawan yang bergaris bawah biru untuk membuka pop-up log rincian tanggal, nama hari, tipe hari (Weekday/Weekend), jam aktual masuk, serta menit keterlambatannya secara detail.
+        </p>
+      </div>
+
+      <div class="tutorial-step">
+        <h4>6. Ekspor Hasil Laporan</h4>
+        <p>
+          Gunakan tombol <span class="tutorial-badge" style="background:#d1fae5; color:#065f46;">📥 Unduh Rekap (Excel)</span> untuk laporan 2 sheet atau <span class="tutorial-badge" style="background:#ffe4e6; color:#9f1239;">📄 Cetak / Unduh (PDF)</span> untuk mencetak dokumen format A4 siap pakai.
+        </p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -386,6 +494,20 @@
     { nama: 'Siang', jamWeekday: '14:00', jamWeekend: '14:00' }
   ];
 
+  function setLastUpdateInfo() {
+    const el = document.getElementById('lastUpdateText');
+    if (document.lastModified) {
+      const d = new Date(document.lastModified);
+      if (!isNaN(d.getTime())) {
+        const tglStr = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        const jamStr = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        el.innerText = `Last Updated: ${tglStr} ${jamStr} WIB`;
+        return;
+      }
+    }
+    el.innerText = `Last Updated: August 2026`;
+  }
+
   function renderShiftInputs(shifts) {
     const container = document.getElementById('shiftListContainer');
     container.innerHTML = '';
@@ -419,6 +541,15 @@
     document.getElementById('tableBody').innerHTML = '';
     document.getElementById('filterOutlet').innerHTML = '';
     tutupModal();
+    tutupModalTutorial();
+  }
+
+  function bukaModalTutorial() {
+    document.getElementById('tutorialModal').style.display = 'flex';
+  }
+
+  function tutupModalTutorial() {
+    document.getElementById('tutorialModal').style.display = 'none';
   }
 
   function ambilDaftarShift() {
@@ -551,6 +682,7 @@
   }
 
   renderShiftInputs(defaultShifts);
+  setLastUpdateInfo();
 
   document.getElementById('excelFile').addEventListener('change', function(e) {
     const file = e.target.files[0];
@@ -585,7 +717,8 @@
       if (row[outletKey]) outlets.add(row[outletKey].toString().trim());
     });
 
-    outlets.forEach(outlet => {
+    // Urutkan dropdown outlet berdasarkan abjad
+    Array.from(outlets).sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' })).forEach(outlet => {
       const opt = document.createElement('option');
       opt.value = outlet;
       opt.textContent = outlet;
@@ -689,7 +822,12 @@
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
 
-    Object.values(calculatedSummary).forEach(item => {
+    // Mengurutkan data karyawan berdasarkan abjad Nama Karyawan (A - Z)
+    const sortedSummary = Object.values(calculatedSummary).sort((a, b) => {
+      return a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' });
+    });
+
+    sortedSummary.forEach(item => {
       const tr = document.createElement('tr');
       const badgeLate = item.terlambatCount > 0 
         ? `<span class="late-badge">${item.terlambatCount}x</span>` 
@@ -745,6 +883,105 @@
 
   function tutupModal() {
     document.getElementById('detailModal').style.display = 'none';
+  }
+
+  function eksporKeExcel() {
+    const items = Object.values(calculatedSummary).sort((a, b) => {
+      return a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' });
+    });
+
+    if (items.length === 0) {
+      alert("Tidak ada data untuk diekspor!");
+      return;
+    }
+
+    const sheetDataRingkasan = [
+      ["No", "Nama Karyawan", "Outlet", "Total Kehadiran", "Total Jam Kerja (Jam)", "Jml Terlambat (Kali)", "Total Terlambat (Menit)"]
+    ];
+
+    items.forEach((item, index) => {
+      sheetDataRingkasan.push([
+        index + 1,
+        item.nama,
+        item.outlet,
+        item.shifts,
+        parseFloat(item.totalJam.toFixed(2)),
+        item.terlambatCount,
+        item.totalMenitTerlambat
+      ]);
+    });
+
+    const sheetDataRincian = [
+      ["No", "Nama Karyawan", "Outlet", "Tanggal", "Hari", "Tipe Hari", "Sesi Shift", "Jadwal Masuk", "Absen Masuk", "Menit Terlambat"]
+    ];
+
+    let noLog = 1;
+    items.forEach(item => {
+      item.rincianTerlambat.forEach(r => {
+        sheetDataRincian.push([
+          noLog++,
+          item.nama,
+          item.outlet,
+          r.tanggal,
+          r.hari,
+          r.isWeekend ? "Weekend" : "Weekday",
+          r.shift,
+          r.jadwalMasuk,
+          r.absenMasuk,
+          r.menitTerlambat
+        ]);
+      });
+    });
+
+    const wb = XLSX.utils.book_new();
+    const wsRingkasan = XLSX.utils.aoa_to_sheet(sheetDataRingkasan);
+    const wsRincian = XLSX.utils.aoa_to_sheet(sheetDataRincian);
+
+    XLSX.utils.book_append_sheet(wb, wsRingkasan, "Ringkasan Karyawan");
+    XLSX.utils.book_append_sheet(wb, wsRincian, "Rincian Keterlambatan");
+
+    XLSX.writeFile(wb, "Rekap_Absensi_LUNAPOS_EMBERCINCAU.xlsx");
+  }
+
+  function eksporKePDF() {
+    const items = Object.values(calculatedSummary).sort((a, b) => {
+      return a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' });
+    });
+
+    if (items.length === 0) {
+      alert("Tidak ada data untuk dicetak!");
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'pt', 'a4');
+
+    doc.setFontSize(16);
+    doc.text("Laporan Rekapitulasi Absensi LUNAPOS", 40, 40);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text("Created by EMBERCINCAU | " + new Date().toLocaleDateString('id-ID'), 40, 58);
+
+    const rows = items.map((item, idx) => [
+      idx + 1,
+      item.nama,
+      item.outlet,
+      item.shifts,
+      item.totalJam.toFixed(1) + " Jam",
+      item.terlambatCount + "x",
+      item.totalMenitTerlambat + " Mnt"
+    ]);
+
+    doc.autoTable({
+      head: [['No', 'Nama Karyawan', 'Outlet', 'Kehadiran', 'Total Jam', 'Terlambat', 'Total Mnt']],
+      body: rows,
+      startY: 75,
+      theme: 'grid',
+      headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+      styles: { fontSize: 9 }
+    });
+
+    doc.save("Laporan_Rekap_Absensi_LUNAPOS.pdf");
   }
 </script>
 
