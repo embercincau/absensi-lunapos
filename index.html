@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rekap Absensi di Sistem LUNAPOS</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f1f5f9;
+      margin: 0;
+      padding: 24px;
+      color: #1e293b;
+    }
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      background: #ffffff;
+      padding: 28px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    h1 { margin-top: 0; text-align: center; color: #0f172a; }
+    
+    .config-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .config-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .config-header h3 { margin: 0; color: #1e293b; }
+    
+    .shift-header-row {
+      display: grid;
+      grid-template-columns: 1.5fr 1.2fr 1.2fr 80px;
+      gap: 12px;
+      padding: 0 14px 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .shift-row {
+      display: grid;
+      grid-template-columns: 1.5fr 1.2fr 1.2fr 80px;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      background: #ffffff;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+    }
+    .shift-row input[type="text"], .shift-row input[type="time"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .btn-add { background-color: #0284c7; color: white; }
+    .btn-add:hover { background-color: #0369a1; }
+    .btn-del { background-color: #ef4444; color: white; }
+    .btn-del:hover { background-color: #dc2626; }
+    .btn-reset { background-color: #64748b; color: white; }
+    .btn-reset:hover { background-color: #475569; }
+    .btn-reset-all { background-color: #dc2626; color: white; padding: 10px 18px; font-size: 14px; }
+    .btn-reset-all:hover { background-color: #b91c1c; }
+    
+    .upload-area {
+      border: 2px dashed #3b82f6;
+      background: #eff6ff;
+      padding: 24px;
+      text-align: center;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .action-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-card.danger h3 { color: #dc2626; }
+    .stat-card h3 { margin: 0; font-size: 24px; color: #2563eb; }
+    .stat-card p { margin: 6px 0 0 0; color: #64748b; font-size: 13px; }
+    
+    .filter-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    select, input[type="number"] {
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 10px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #2563eb;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    tr:nth-child(even) { background-color: #f8fafc; }
+    .number { text-align: right; }
+    .center { text-align: center; }
+    .late-badge {
+      background-color: #fee2e2;
+      color: #b91c1c;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .clickable-name {
+      color: #2563eb;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .clickable-name:hover {
+      color: #1d4ed8;
+    }
+
+    /* Footer Kredit */
+    .footer-credit {
+      text-align: center;
+      margin-top: 32px;
+      padding-top: 18px;
+      border-top: 1px solid #e2e8f0;
+      color: #64748b;
+      font-size: 13px;
+    }
+    .footer-credit strong {
+      color: #1e293b;
+      letter-spacing: 0.5px;
+    }
+
+    /* Modal Popup Detail */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #ffffff;
+      width: 90%;
+      max-width: 780px;
+      max-height: 85vh;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 16px 20px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h3 { margin: 0; color: #0f172a; font-size: 18px; }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 22px;
+      font-weight: bold;
+      color: #64748b;
+      cursor: pointer;
+    }
+    .modal-close:hover { color: #0f172a; }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .badge-weekend {
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 4px;
+    }
+    .badge-weekday {
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>📊 Rekap Absensi di sistem LUNAPOS</h1>
+
+  <!-- 1. Konfigurasi Jadwal Shift -->
+  <div class="config-card">
+    <div class="config-header">
+      <div>
+        <h3 style="display: inline-block; margin-right: 8px;">⚙️ Master Jadwal Shift Kerja</h3>
+        <span style="font-size: 13px; color: #64748b;">(Sistem mencocokkan jam masuk aktual secara otomatis ke jadwal terdekat)</span>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-reset" onclick="resetShiftToDefault()">🔄 Reset Shift</button>
+        <button class="btn btn-add" onclick="tambahBarisShift()">+ Tambah Shift</button>
+      </div>
+    </div>
+
+    <div class="shift-header-row">
+      <div>Nama Sesi</div>
+      <div>Jam Masuk Weekday (Sen-Jum)</div>
+      <div>Jam Masuk Weekend (Sab-Min)</div>
+      <div>Aksi</div>
+    </div>
+
+    <div id="shiftListContainer"></div>
+
+    <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px;">
+      <label for="toleranceInput" style="font-size: 13px; font-weight: 600;">Toleransi Keterlambatan:</label>
+      <input type="number" id="toleranceInput" value="0" min="0" style="width: 70px;" onchange="if(rawData.length) jalankanKalkulasi();">
+      <span style="font-size: 13px; color: #64748b;">Menit</span>
+    </div>
+  </div>
+
+  <!-- 2. Bagian Upload File Excel -->
+  <div class="upload-area">
+    <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
+  </div>
+
+  <!-- 3. Dashboard Hasil Rekap -->
+  <div id="dashboard" style="display: none;">
+    <div class="action-bar">
+      <button class="btn btn-reset-all" onclick="resetSemuaData()">🗑️ Reset / Hapus File & Data</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3 id="statTotalShift">0</h3>
+        <p>Total Shift Masuk</p>
+      </div>
+      <div class="stat-card">
+        <h3 id="statTotalJam">0 Jam</h3>
+        <p>Total Jam Kerja</p>
+      </div>
+      <div class="stat-card danger">
+        <h3 id="statTotalTerlambat">0x</h3>
+        <p>Total Frekuensi Terlambat</p>
+      </div>
+      <div class="stat-card danger">
+        <h3 id="statTotalMenitTerlambat">0 Mnt</h3>
+        <p>Total Menit Terlambat</p>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <label for="filterOutlet"><strong>Filter Outlet:</strong></label>
+      <select id="filterOutlet"></select>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nama Karyawan (Klik untuk Rincian)</th>
+          <th>Outlet</th>
+          <th class="center">Total Kehadiran</th>
+          <th class="number">Total Jam Kerja</th>
+          <th class="center">Jml Terlambat</th>
+          <th class="number">Total Terlambat (Menit)</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Footer Kredit Pembuat -->
+  <div class="footer-credit">
+    Created by <strong>EMBERCINCAU</strong>
+    Last Update 2026-08-31
+  </div>
+</div>
+
+<!-- Modal Popup Detail Keterlambatan -->
+<div id="detailModal" class="modal-overlay" onclick="if(event.target === this) tutupModal();">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Rincian Keterlambatan</h3>
+      <button class="modal-close" onclick="tutupModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="modalStatsSummary" style="margin-bottom: 14px; font-size: 14px; color: #475569;"></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Hari</th>
+            <th>Prediksi Shift</th>
+            <th class="center">Jadwal Masuk</th>
+            <th class="center">Absen Masuk</th>
+            <th class="number">Terlambat</th>
+          </tr>
+        </thead>
+        <tbody id="modalTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  let rawData = [];
+  let calculatedSummary = {};
+
+  const defaultShifts = [
+    { nama: 'Pagi', jamWeekday: '09:30', jamWeekend: '09:30' },
+    { nama: 'Middle', jamWeekday: '11:00', jamWeekend: '11:00' },
+    { nama: 'Siang', jamWeekday: '14:00', jamWeekend: '14:00' }
+  ];
+
+  function renderShiftInputs(shifts) {
+    const container = document.getElementById('shiftListContainer');
+    container.innerHTML = '';
+    shifts.forEach(s => tambahBarisShift(s.nama, s.jamWeekday, s.jamWeekend));
+  }
+
+  function tambahBarisShift(nama = '', jamWeekday = '09:00', jamWeekend = '09:00') {
+    const container = document.getElementById('shiftListContainer');
+    const row = document.createElement('div');
+    row.className = 'shift-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Nama Sesi (contoh: Pagi / Siang)" value="${nama}" onchange="if(rawData.length) jalankanKalkulasi();">
+      <input type="time" value="${jamWeekday}" title="Jam Masuk Weekday" onchange="if(rawData.length) jalankanKalkulasi();">
+      <input type="time" value="${jamWeekend}" title="Jam Masuk Weekend" onchange="if(rawData.length) jalankanKalkulasi();">
+      <button class="btn btn-del" onclick="this.parentElement.remove(); if(rawData.length) jalankanKalkulasi();">Hapus</button>
+    `;
+    container.appendChild(row);
+  }
+
+  function resetShiftToDefault() {
+    renderShiftInputs(defaultShifts);
+    document.getElementById('toleranceInput').value = 0;
+    if (rawData.length) jalankanKalkulasi();
+  }
+
+  function resetSemuaData() {
+    rawData = [];
+    calculatedSummary = {};
+    document.getElementById('excelFile').value = '';
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('tableBody').innerHTML = '';
+    document.getElementById('filterOutlet').innerHTML = '';
+    tutupModal();
+  }
+
+  function ambilDaftarShift() {
+    const rows = document.querySelectorAll('#shiftListContainer .shift-row');
+    const shifts = [];
+    rows.forEach(r => {
+      const inputs = r.querySelectorAll('input');
+      const nama = inputs[0].value.trim();
+      const jamWeekday = inputs[1].value;
+      const jamWeekend = inputs[2].value;
+      if (jamWeekday && jamWeekend) {
+        shifts.push({
+          nama: nama || 'Shift',
+          jamWeekday: jamWeekday,
+          jamWeekend: jamWeekend,
+          menitWeekday: parseMenitDariStringWaktu(jamWeekday),
+          menitWeekend: parseMenitDariStringWaktu(jamWeekend)
+        });
+      }
+    });
+    return shifts;
+  }
+
+  function cariShiftTerdekat(menitMasuk, isWeekendFlag, daftarShift) {
+    if (!daftarShift || daftarShift.length === 0 || menitMasuk === null) return null;
+
+    let shiftTerpilih = null;
+    let jarakTerkecil = Infinity;
+
+    daftarShift.forEach(s => {
+      const targetMenit = isWeekendFlag ? s.menitWeekend : s.menitWeekday;
+      const jarak = Math.abs(menitMasuk - targetMenit);
+      if (jarak < jarakTerkecil) {
+        jarakTerkecil = jarak;
+        shiftTerpilih = {
+          nama: s.nama,
+          targetMenit: targetMenit,
+          jadwalStr: isWeekendFlag ? s.jamWeekend : s.jamWeekday
+        };
+      }
+    });
+
+    return shiftTerpilih;
+  }
+
+  function parseTanggalInfo(tglVal) {
+    if (!tglVal) return { isWeekend: false, labelTgl: '-', namaHari: '-' };
+
+    let dateObj = null;
+    let labelTgl = tglVal.toString().trim();
+
+    if (typeof tglVal === 'number') {
+      dateObj = new Date(Math.round((tglVal - 25569) * 86400 * 1000));
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      labelTgl = `${y}-${m}-${d}`;
+    } else if (typeof tglVal === 'string') {
+      const cleanStr = tglVal.trim();
+      const dmyMatch = cleanStr.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+      if (dmyMatch) {
+        dateObj = new Date(parseInt(dmyMatch[1], 10), parseInt(dmyMatch[2], 10) - 1, parseInt(dmyMatch[3], 10));
+      } else {
+        const dmyMatch2 = cleanStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+        if (dmyMatch2) {
+          dateObj = new Date(parseInt(dmyMatch2[3], 10), parseInt(dmyMatch2[2], 10) - 1, parseInt(dmyMatch2[1], 10));
+        } else {
+          const parsed = Date.parse(cleanStr);
+          if (!isNaN(parsed)) dateObj = new Date(parsed);
+        }
+      }
+    }
+
+    const hariIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    if (dateObj && !isNaN(dateObj.getTime())) {
+      const dayIndex = dateObj.getDay();
+      return {
+        isWeekend: (dayIndex === 0 || dayIndex === 6),
+        labelTgl: labelTgl,
+        namaHari: hariIndo[dayIndex]
+      };
+    }
+
+    return { isWeekend: false, labelTgl: labelTgl, namaHari: '-' };
+  }
+
+  function formatDisplayWaktu(str) {
+    if (!str) return '-';
+    if (typeof str === 'number') {
+      const totalMenit = Math.round(str * 24 * 60);
+      const jam = String(Math.floor(totalMenit / 60)).padStart(2, '0');
+      const menit = String(totalMenit % 60).padStart(2, '0');
+      return `${jam}:${menit}`;
+    }
+    return str.toString().trim();
+  }
+
+  function parseMenitDariStringWaktu(str) {
+    if (!str && str !== 0) return null;
+    if (typeof str === 'number') {
+      return Math.round(str * 24 * 60);
+    }
+    const parts = str.toString().trim().split(':');
+    if (parts.length >= 2) {
+      const jam = parseInt(parts[0], 10);
+      const menit = parseInt(parts[1], 10);
+      if (!isNaN(jam) && !isNaN(menit)) {
+        return (jam * 60) + menit;
+      }
+    }
+    return null;
+  }
+
+  function parseJamKerja(val) {
+    if (typeof val === 'number') {
+      return val < 1 ? (val * 24) : val;
+    }
+    if (typeof val === 'string') {
+      const str = val.trim();
+      if (str.includes(':')) {
+        const parts = str.split(':');
+        const h = parseFloat(parts[0]) || 0;
+        const m = parseFloat(parts[1]) || 0;
+        return h + (m / 60);
+      }
+      const match = str.replace(',', '.').match(/[\d.]+/);
+      return match ? parseFloat(match[0]) : 0;
+    }
+    return 0;
+  }
+
+  renderShiftInputs(defaultShifts);
+
+  document.getElementById('excelFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const data = new Uint8Array(evt.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      rawData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+      if (rawData.length === 0) {
+        alert("File Excel kosong!");
+        return;
+      }
+
+      isiDropdownOutlet();
+      jalankanKalkulasi();
+      document.getElementById('dashboard').style.display = 'block';
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  function isiDropdownOutlet() {
+    const outletSelect = document.getElementById('filterOutlet');
+    outletSelect.innerHTML = '<option value="ALL">Semua Outlet</option>';
+    
+    const outlets = new Set();
+    rawData.forEach(row => {
+      const outletKey = Object.keys(row).find(k => k.toLowerCase().includes('outlet')) || 'Outlet';
+      if (row[outletKey]) outlets.add(row[outletKey].toString().trim());
+    });
+
+    outlets.forEach(outlet => {
+      const opt = document.createElement('option');
+      opt.value = outlet;
+      opt.textContent = outlet;
+      outletSelect.appendChild(opt);
+    });
+
+    outletSelect.onchange = () => jalankanKalkulasi();
+  }
+
+  function jalankanKalkulasi() {
+    const daftarShift = ambilDaftarShift();
+    const selectedOutlet = document.getElementById('filterOutlet').value;
+    const toleransi = parseInt(document.getElementById('toleranceInput').value, 10) || 0;
+
+    calculatedSummary = {};
+    let grandTotalShift = 0;
+    let grandTotalJam = 0;
+    let grandTotalTerlambatCount = 0;
+    let grandTotalTerlambatMenit = 0;
+
+    rawData.forEach(row => {
+      const namaKey = Object.keys(row).find(k => k.toLowerCase().includes('nama')) || 'Nama Karyawan';
+      const outletKey = Object.keys(row).find(k => k.toLowerCase().includes('outlet')) || 'Outlet';
+      const tglKey = Object.keys(row).find(k => k.toLowerCase().includes('tanggal') || k.toLowerCase().includes('tgl')) || 'Tanggal';
+      const masukKey = Object.keys(row).find(k => k.toLowerCase().includes('absensi masuk') || k.toLowerCase() === 'masuk') || 'Absensi Masuk';
+      const jamKey = Object.keys(row).find(k => k.toLowerCase().includes('total jam kerja') || k.toLowerCase().includes('total jam')) || 'Total Jam Kerja';
+
+      const nama = row[namaKey] ? row[namaKey].toString().trim() : '';
+      const outlet = row[outletKey] ? row[outletKey].toString().trim() : '-';
+      const tglVal = row[tglKey];
+      const absenMasukStr = row[masukKey];
+      const jamKerja = parseJamKerja(row[jamKey]);
+
+      if (!nama) return;
+      if (selectedOutlet !== 'ALL' && outlet !== selectedOutlet) return;
+
+      const tglInfo = parseTanggalInfo(tglVal);
+      const menitMasukAktual = parseMenitDariStringWaktu(absenMasukStr);
+
+      const shiftTerpilih = cariShiftTerdekat(menitMasukAktual, tglInfo.isWeekend, daftarShift);
+
+      let menitTerlambat = 0;
+      let isTerlambat = false;
+      let namaShiftDipakai = '-';
+      let jadwalMasukStr = '-';
+
+      if (shiftTerpilih && menitMasukAktual !== null) {
+        namaShiftDipakai = shiftTerpilih.nama;
+        jadwalMasukStr = shiftTerpilih.jadwalStr;
+        const selisih = menitMasukAktual - shiftTerpilih.targetMenit;
+        if (selisih > toleransi) {
+          isTerlambat = true;
+          menitTerlambat = selisih;
+        }
+      }
+
+      grandTotalShift++;
+      grandTotalJam += jamKerja;
+      if (isTerlambat) {
+        grandTotalTerlambatCount++;
+        grandTotalTerlambatMenit += menitTerlambat;
+      }
+
+      const key = `${nama}_${outlet}`;
+      if (!calculatedSummary[key]) {
+        calculatedSummary[key] = {
+          key,
+          nama,
+          outlet,
+          shifts: 0,
+          totalJam: 0,
+          terlambatCount: 0,
+          totalMenitTerlambat: 0,
+          rincianTerlambat: []
+        };
+      }
+
+      calculatedSummary[key].shifts++;
+      calculatedSummary[key].totalJam += jamKerja;
+
+      if (isTerlambat) {
+        calculatedSummary[key].terlambatCount++;
+        calculatedSummary[key].totalMenitTerlambat += menitTerlambat;
+        calculatedSummary[key].rincianTerlambat.push({
+          tanggal: tglInfo.labelTgl,
+          hari: tglInfo.namaHari,
+          isWeekend: tglInfo.isWeekend,
+          shift: namaShiftDipakai,
+          jadwalMasuk: jadwalMasukStr,
+          absenMasuk: formatDisplayWaktu(absenMasukStr),
+          menitTerlambat: menitTerlambat
+        });
+      }
+    });
+
+    document.getElementById('statTotalShift').innerText = grandTotalShift;
+    document.getElementById('statTotalJam').innerText = grandTotalJam.toFixed(1) + ' Jam';
+    document.getElementById('statTotalTerlambat').innerText = grandTotalTerlambatCount + 'x';
+    document.getElementById('statTotalMenitTerlambat').innerText = grandTotalTerlambatMenit + ' Menit';
+
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+
+    Object.values(calculatedSummary).forEach(item => {
+      const tr = document.createElement('tr');
+      const badgeLate = item.terlambatCount > 0 
+        ? `<span class="late-badge">${item.terlambatCount}x</span>` 
+        : `0x`;
+
+      tr.innerHTML = `
+        <td><span class="clickable-name" onclick="bukaModalDetail('${item.key}')">${item.nama}</span></td>
+        <td>${item.outlet}</td>
+        <td class="center">${item.shifts}</td>
+        <td class="number">${item.totalJam.toFixed(1)} Jam</td>
+        <td class="center">${badgeLate}</td>
+        <td class="number">${item.totalMenitTerlambat > 0 ? `<strong>${item.totalMenitTerlambat} Menit</strong>` : '0'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function bukaModalDetail(key) {
+    const data = calculatedSummary[key];
+    if (!data) return;
+
+    document.getElementById('modalTitle').innerText = `Rincian Keterlambatan: ${data.nama} (${data.outlet})`;
+    document.getElementById('modalStatsSummary').innerHTML = `
+      Total Kejadian Terlambat: <strong>${data.terlambatCount} kali</strong> | Total Keterlambatan: <strong>${data.totalMenitTerlambat} Menit</strong>
+    `;
+
+    const tbody = document.getElementById('modalTableBody');
+    tbody.innerHTML = '';
+
+    if (data.rincianTerlambat.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #16a34a; padding: 18px;">🎉 Karyawan ini tidak pernah terlambat!</td></tr>`;
+    } else {
+      data.rincianTerlambat.forEach(r => {
+        const badgeDay = r.isWeekend 
+          ? `<span class="badge-weekend">Weekend</span>` 
+          : `<span class="badge-weekday">Weekday</span>`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${r.tanggal}</strong></td>
+          <td>${r.hari} ${badgeDay}</td>
+          <td>${r.shift}</td>
+          <td class="center">${r.jadwalMasuk}</td>
+          <td class="center" style="color: #dc2626; font-weight: bold;">${r.absenMasuk}</td>
+          <td class="number" style="color: #dc2626; font-weight: bold;">+${r.menitTerlambat} Mnt</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('detailModal').style.display = 'flex';
+  }
+
+  function tutupModal() {
+    document.getElementById('detailModal').style.display = 'none';
+  }
+</script>
+
+</body>
+</html>
