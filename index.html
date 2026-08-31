@@ -717,7 +717,6 @@
       if (row[outletKey]) outlets.add(row[outletKey].toString().trim());
     });
 
-    // Urutkan dropdown outlet berdasarkan abjad
     Array.from(outlets).sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' })).forEach(outlet => {
       const opt = document.createElement('option');
       opt.value = outlet;
@@ -822,7 +821,6 @@
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
 
-    // Mengurutkan data karyawan berdasarkan abjad Nama Karyawan (A - Z)
     const sortedSummary = Object.values(calculatedSummary).sort((a, b) => {
       return a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' });
     });
@@ -956,11 +954,9 @@
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'pt', 'a4');
 
+    // Judul Dokumen PDF
     doc.setFontSize(16);
-    doc.text("Laporan Rekapitulasi Absensi LUNAPOS", 40, 40);
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text("Created by EMBERCINCAU | " + new Date().toLocaleDateString('id-ID'), 40, 58);
+    doc.text("Laporan Rekapitulasi Absensi LUNAPOS", 40, 45);
 
     const rows = items.map((item, idx) => [
       idx + 1,
@@ -975,7 +971,7 @@
     doc.autoTable({
       head: [['No', 'Nama Karyawan', 'Outlet', 'Kehadiran', 'Total Jam', 'Terlambat', 'Total Mnt']],
       body: rows,
-      startY: 75,
+      startY: 65,
       theme: 'grid',
       headStyles: { fillColor: [37, 99, 235], textColor: 255 },
       styles: { fontSize: 9 }
