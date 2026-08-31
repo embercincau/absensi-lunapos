@@ -10,68 +10,136 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      color-scheme: light;
+      --bg: #eef1f8;
+      --surface: #ffffff;
+      --surface-muted: #f7f8fc;
+      --border: #e3e6f0;
+      --ink: #101828;
+      --ink-muted: #667085;
+      --ink-faint: #98a2b3;
+      --accent: #6d5bf6;
+      --accent-2: #9b6bf0;
+      --accent-dark: #5a47e0;
+      --accent-soft: #efe9ff;
+      --teal: #0d9488;
+      --teal-soft: #e3f8f5;
+      --danger: #e5484d;
+      --danger-soft: #fdecec;
+      --warn: #d08700;
+      --warn-soft: #fef3dd;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+      --shadow-md: 0 4px 14px rgba(16, 24, 40, 0.08);
+      --shadow-accent: 0 8px 20px -6px rgba(109, 91, 246, 0.45);
+    }
+
+    body.dark {
+      color-scheme: dark;
+      --bg: #101116;
+      --surface: #181a21;
+      --surface-muted: #1f222b;
+      --border: #2b2e38;
+      --ink: #ffffff;
+      --ink-muted: #d1d5db;
+      --ink-faint: #9ca3af;
+      --accent: #8b7cf8;
+      --accent-2: #b18af5;
+      --accent-dark: #a78bfa;
+      --accent-soft: rgba(139, 124, 248, 0.22);
+      --teal: #2dd4bf;
+      --teal-soft: rgba(45, 212, 191, 0.18);
+      --danger: #f87171;
+      --danger-soft: rgba(248, 113, 113, 0.18);
+      --warn: #fbbf24;
+      --warn-soft: rgba(251, 191, 36, 0.18);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
+      --shadow-accent: 0 8px 20px -6px rgba(139, 124, 248, 0.5);
+    }
+
     * {
       box-sizing: border-box;
     }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f1f5f9;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at 15% 0%, #f2effe 0%, var(--bg) 45%);
       margin: 0;
-      padding: 24px;
-      color: #1e293b;
+      padding: 40px 24px;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    body.dark {
+      background: radial-gradient(circle at 15% 0%, #1c1730 0%, var(--bg) 45%);
     }
     .container {
       max-width: 1100px;
       margin: auto;
-      background: #ffffff;
-      padding: 28px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      background: var(--surface);
+      padding: 36px 40px 40px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
     }
     .header-area {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
     }
-    h1 { 
-      margin: 0 0 6px 0; 
-      color: #0f172a; 
-      font-size: 24px; 
+    .header-title {
+      text-align: center;
+      width: 100%;
+    }
+    h1 {
+      margin: 0 0 6px 0;
+      color: var(--ink);
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
     }
     .sub-header {
       margin: 0;
-      color: #64748b;
+      color: var(--ink-muted);
       font-size: 14px;
+      font-weight: 400;
     }
-    
+
     .config-card {
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      padding: 20px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 22px;
       margin-bottom: 24px;
     }
     .config-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
       flex-wrap: wrap;
       gap: 10px;
     }
-    .config-header h3 { margin: 0; color: #1e293b; font-size: 16px; }
-    
+    .config-header h3 { margin: 0; color: var(--ink); font-size: 14.5px; font-weight: 700; }
+
     /* Item Card Shift */
     .shift-row {
       display: grid;
       grid-template-columns: 1.5fr 1.2fr 1.2fr auto;
       align-items: end;
       gap: 12px;
-      margin-bottom: 12px;
-      background: #ffffff;
+      margin-bottom: 10px;
+      background: var(--surface);
       padding: 12px 14px;
-      border-radius: 8px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
     }
     .input-field-group {
       display: flex;
@@ -79,68 +147,184 @@
       gap: 5px;
     }
     .input-field-group label {
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 600;
-      color: #475569;
+      color: var(--ink-muted);
     }
     .shift-row input[type="text"], .shift-row input[type="time"] {
       width: 100%;
       padding: 8px 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      font-size: 14px;
-      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--ink);
     }
-    
+    .shift-row input:focus, select:focus, input[type="number"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
     .btn-group {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
     }
     .btn {
-      padding: 8px 14px;
-      border: none;
-      border-radius: 6px;
+      padding: 9px 16px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
       font-weight: 600;
       cursor: pointer;
       font-size: 13px;
-      transition: all 0.2s;
+      font-family: inherit;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.15s ease;
     }
-    .btn-tutorial { background-color: #f59e0b; color: white; }
-    .btn-tutorial:hover { background-color: #d97706; }
-    .btn-add { background-color: #0284c7; color: white; }
-    .btn-add:hover { background-color: #0369a1; }
-    .btn-del { background-color: #ef4444; color: white; height: 38px; }
-    .btn-del:hover { background-color: #dc2626; }
-    .btn-reset { background-color: #64748b; color: white; }
-    .btn-reset:hover { background-color: #475569; }
-    .btn-reset-all { background-color: #dc2626; color: white; }
-    .btn-reset-all:hover { background-color: #b91c1c; }
-    
-    .btn-export-excel { background-color: #10b981; color: white; }
-    .btn-export-excel:hover { background-color: #059669; }
-    .btn-export-pdf { background-color: #f43f5e; color: white; }
-    .btn-export-pdf:hover { background-color: #e11d48; }
-    
-    .upload-area {
-      border: 2px dashed #3b82f6;
-      background: #eff6ff;
-      padding: 24px;
+    .btn:active { transform: translateY(1px); }
+    .btn-tutorial { background-color: var(--surface); color: var(--ink); border-color: var(--border); box-shadow: var(--shadow-sm); }
+    .btn-tutorial:hover { background-color: var(--surface-muted); }
+    .btn-add {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      color: white;
+      box-shadow: var(--shadow-accent);
+    }
+    .btn-add:hover { filter: brightness(1.06); }
+    .btn-del { background-color: var(--danger-soft); color: var(--danger); height: 37px; }
+    .btn-del:hover { background-color: #fbd8d8; }
+    .btn-reset { background-color: var(--surface); color: var(--ink); border-color: var(--border); box-shadow: var(--shadow-sm); }
+    .btn-reset:hover { background-color: var(--surface-muted); }
+    .btn-reset-all { background-color: var(--danger-soft); color: var(--danger); }
+    .btn-reset-all:hover { background-color: #fbd8d8; }
+
+    .btn-export-excel {
+      background: linear-gradient(135deg, var(--teal) 0%, #14b8a6 100%);
+      color: white;
+      box-shadow: 0 8px 20px -6px rgba(13, 148, 136, 0.45);
+    }
+    .btn-export-excel:hover { filter: brightness(1.05); }
+    .btn-export-pdf {
+      background-color: var(--surface);
+      color: var(--ink);
+      border-color: var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-export-pdf:hover { background-color: var(--surface-muted); }
+
+    .upload-zone {
+      position: relative;
+      border: 1.5px dashed #c7bff5;
+      background: linear-gradient(135deg, var(--accent-soft) 0%, var(--surface-muted) 100%);
+      padding: 34px 24px;
       text-align: center;
-      border-radius: 8px;
+      border-radius: var(--radius-md);
       margin-bottom: 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
     }
+    .upload-zone:hover { border-color: var(--accent); }
+    .upload-zone.dragover {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, var(--accent-soft) 0%, var(--surface) 100%);
+    }
+    .upload-input-hidden {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      z-index: 1;
+    }
+    .upload-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      box-shadow: var(--shadow-sm);
+    }
+    .upload-icon svg { width: 20px; height: 20px; }
+    .upload-text { font-size: 13.5px; color: var(--ink); }
+    .upload-text strong { color: var(--accent-dark); font-weight: 600; }
+    .upload-hint { font-size: 12px; color: var(--ink-faint); }
+    .upload-filename {
+      position: relative;
+      z-index: 2;
+      display: none;
+      margin-top: 2px;
+    }
+    .file-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 8px 6px 12px;
+      font-size: 12.5px;
+      color: var(--ink);
+      box-shadow: var(--shadow-sm);
+      max-width: 320px;
+    }
+    .file-chip svg { width: 14px; height: 14px; color: var(--accent); flex-shrink: 0; }
+    .file-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-remove {
+      border: none;
+      background: var(--surface-muted);
+      color: var(--ink-muted);
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 0;
+    }
+    .file-remove:hover { background: var(--danger-soft); color: var(--danger); }
+    .upload-status {
+      display: none;
+      align-items: center;
+      gap: 9px;
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      margin: -12px 0 24px 0;
+    }
+    .upload-status.loading { background: var(--accent-soft); color: var(--accent-dark); }
+    .upload-status.success { background: var(--teal-soft); color: var(--teal); }
+    .upload-status.error { background: var(--danger-soft); color: var(--danger); align-items: flex-start; }
+    .spinner {
+      width: 14px; height: 14px;
+      margin-top: 1px;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     .action-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       flex-wrap: wrap;
       gap: 10px;
     }
@@ -148,87 +332,225 @@
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
+      gap: 14px;
+      margin-bottom: 28px;
     }
     .stat-card {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      padding: 16px;
-      border-radius: 8px;
-      text-align: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 18px 20px;
+      border-radius: var(--radius-md);
+      text-align: left;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
     }
-    .stat-card.danger h3 { color: #dc2626; }
-    .stat-card h3 { margin: 0; font-size: 24px; color: #2563eb; }
-    .stat-card p { margin: 6px 0 0 0; color: #64748b; font-size: 13px; }
-    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+    .stat-card.danger::before {
+      background: linear-gradient(90deg, var(--danger), #f79009);
+    }
+    .stat-card.danger h3 { color: var(--danger); }
+    .stat-card h3 { margin: 0; font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; }
+    .stat-card h3.pulse { animation: statPulse 0.35s ease; }
+    @keyframes statPulse {
+      0% { transform: scale(1); }
+      35% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .stat-card p { margin: 4px 0 0 0; color: var(--ink-muted); font-size: 12.5px; font-weight: 500; }
+
     .filter-section {
       display: flex;
       align-items: center;
       gap: 12px;
       margin-bottom: 16px;
     }
+    .filter-section label { font-size: 13px; color: var(--ink); font-weight: 600; }
+    .search-input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--ink);
+      margin-left: auto;
+      min-width: 210px;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+    th.sortable:hover { background: var(--accent-dark); }
+    
     select, input[type="number"] {
       padding: 8px 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      font-size: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    /* Hapus panah naik/turun (spinner/stepper) pada input number */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+      text-align: center;
+    }
+
+    .tolerance-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .tolerance-unit {
+      font-size: 13px;
+      color: var(--ink);
+      font-weight: 500;
     }
 
     /* Tabel Desktop Standar */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
+      margin-top: 8px;
+      font-size: 13.5px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
     }
     th, td {
-      border: 1px solid #e2e8f0;
-      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      padding: 12px;
       text-align: left;
     }
     th {
-      background-color: #2563eb;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
       color: #ffffff;
       font-weight: 600;
-      font-size: 14px;
+      font-size: 12px;
     }
-    tr:nth-child(even) { background-color: #f8fafc; }
+    th:first-child { border-top-left-radius: var(--radius-sm); }
+    th:last-child { border-top-right-radius: var(--radius-sm); }
+    tr:nth-child(even) { background-color: var(--surface-muted); }
+    tbody tr:hover { background-color: var(--accent-soft); }
     .number { text-align: right; }
     .center { text-align: center; }
     .late-badge {
-      background-color: #fee2e2;
-      color: #b91c1c;
-      font-weight: bold;
-      padding: 3px 8px;
-      border-radius: 4px;
+      background-color: var(--danger-soft);
+      color: var(--danger);
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12.5px;
     }
 
     .clickable-name {
-      color: #2563eb;
-      text-decoration: underline;
+      color: var(--accent-dark);
+      text-decoration: none;
+      border-bottom: 1.5px solid var(--accent-soft);
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 700;
+      padding-bottom: 1px;
     }
     .clickable-name:hover {
-      color: #1d4ed8;
+      color: var(--accent);
+      border-bottom-color: var(--accent);
     }
 
+    /* Footer Kredit Pembuat */
     .footer-credit {
       text-align: center;
-      margin-top: 32px;
-      padding-top: 18px;
-      border-top: 1px solid #e2e8f0;
-      color: #64748b;
-      font-size: 13px;
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-faint);
+      font-size: 12.5px;
     }
-    .footer-credit strong {
-      color: #1e293b;
-      letter-spacing: 0.5px;
+    .credit-link {
+      color: var(--accent-dark);
+      letter-spacing: 0.3px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: color 0.15s ease, text-decoration 0.15s ease;
+    }
+    .credit-link:hover {
+      color: var(--accent);
+      text-decoration: underline;
     }
     .footer-credit .last-update {
       margin-top: 4px;
       font-size: 11px;
-      color: #94a3b8;
+      color: var(--ink-faint);
+    }
+
+    /* Switch Toggle Tema (Geser) di Bawah Credit */
+    .theme-switch-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .theme-switch-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink);
+      user-select: none;
+      cursor: pointer;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--border);
+      transition: background-color 0.25s ease;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: transform 0.25s ease;
+      border-radius: 50%;
+      box-shadow: var(--shadow-sm);
+    }
+    .switch input:checked + .slider {
+      background-color: var(--accent);
+    }
+    .switch input:checked + .slider:before {
+      transform: translateX(22px);
     }
 
     /* Modal Popup */
@@ -238,80 +560,90 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(16, 24, 40, 0.55);
+      backdrop-filter: blur(2px);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 1000;
     }
     .modal-content {
-      background: #ffffff;
+      background: var(--surface);
       width: 90%;
-      max-width: 780px;
+      max-width: 760px;
       max-height: 85vh;
-      border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 50px -12px rgba(16, 24, 40, 0.35);
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      animation: modalPop 0.22s ease;
+    }
+    @keyframes modalPop {
+      from { opacity: 0; transform: translateY(14px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
     .modal-header {
-      padding: 16px 20px;
-      background: #f8fafc;
-      border-bottom: 1px solid #e2e8f0;
+      padding: 18px 22px;
+      background: linear-gradient(135deg, var(--accent-soft) 0%, var(--surface) 100%);
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .modal-header h3 { margin: 0; color: #0f172a; font-size: 17px; }
+    .modal-header h3 { margin: 0; color: var(--ink); font-size: 15px; font-weight: 700; }
     .modal-close {
       background: none;
       border: none;
-      font-size: 22px;
-      font-weight: bold;
-      color: #64748b;
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--ink-muted);
       cursor: pointer;
+      line-height: 1;
     }
-    .modal-close:hover { color: #0f172a; }
+    .modal-close:hover { color: var(--ink); }
     .modal-body {
-      padding: 20px;
+      padding: 22px;
       overflow-y: auto;
     }
     .badge-weekend {
-      background: #fef3c7;
-      color: #92400e;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 6px;
-      border-radius: 4px;
-      margin-left: 4px;
+      background: var(--warn-soft);
+      color: var(--warn);
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 5px;
     }
     .badge-weekday {
-      background: #e0f2fe;
-      color: #0369a1;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 6px;
-      border-radius: 4px;
-      margin-left: 4px;
+      background: var(--teal-soft);
+      color: var(--teal);
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 5px;
     }
 
     .tutorial-step {
-      background: #f8fafc;
-      border-left: 4px solid #3b82f6;
+      background: var(--surface-muted);
+      border-left: 3px solid var(--accent);
       padding: 12px 16px;
-      margin-bottom: 14px;
-      border-radius: 0 6px 6px 0;
+      margin-bottom: 12px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     }
-    .tutorial-step h4 { margin: 0 0 6px 0; color: #1e293b; font-size: 14px; }
-    .tutorial-step p { margin: 0; font-size: 13px; color: #475569; line-height: 1.5; }
+    .tutorial-step h4 { margin: 0 0 5px 0; color: var(--ink); font-size: 13.5px; font-weight: 700; }
+    .tutorial-step p { margin: 0; font-size: 13px; color: var(--ink-muted); line-height: 1.55; }
     .tutorial-badge {
       display: inline-block;
-      background: #e2e8f0;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 12px;
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: 11.5px;
+      font-weight: 600;
     }
 
     /* RESPONSIVE MOBILE VIEW */
@@ -320,10 +652,14 @@
         padding: 12px;
       }
       .container {
-        padding: 16px;
+        padding: 20px 16px;
+      }
+      .header-area {
+        margin-bottom: 20px;
+        padding-bottom: 18px;
       }
       h1 {
-        font-size: 20px;
+        font-size: 19px;
       }
       .sub-header {
         font-size: 12px;
@@ -339,8 +675,8 @@
       .shift-row {
         grid-template-columns: 1fr;
         gap: 10px;
-        background: #f8fafc;
-        border: 1px solid #cbd5e1;
+        background: var(--surface-muted);
+        border: 1px solid var(--border);
         padding: 14px;
       }
       .btn-del {
@@ -358,6 +694,10 @@
       .filter-section select {
         width: 100%;
       }
+      .search-input {
+        width: 100%;
+        margin-left: 0;
+      }
 
       /* Card View Mobile */
       #mainTable, #mainTable thead, #mainTable tbody, #mainTable th, #mainTable td, #mainTable tr {
@@ -367,12 +707,12 @@
         display: none;
       }
       #mainTable tr {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        margin-bottom: 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        margin-bottom: 10px;
         padding: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        box-shadow: var(--shadow-sm);
       }
       #mainTable td {
         border: none;
@@ -382,7 +722,7 @@
         align-items: center;
         text-align: right;
         font-size: 13px;
-        border-bottom: 1px dashed #f1f5f9;
+        border-bottom: 1px dashed var(--border);
       }
       #mainTable td:last-child {
         border-bottom: none;
@@ -390,7 +730,7 @@
       #mainTable td::before {
         content: attr(data-label);
         font-weight: 600;
-        color: #64748b;
+        color: var(--ink-muted);
         text-align: left;
         padding-right: 10px;
       }
@@ -400,46 +740,68 @@
 <body>
 
 <div class="container">
+  <!-- Header Judul Rata Tengah -->
   <div class="header-area">
-    <h1>📊 Rekap Absensi di sistem LUNAPOS</h1>
-    <p class="sub-header">Sistem akan mencocokkan jam masuk aktual secara otomatis ke jadwal terdekat</p>
+    <div class="header-title">
+      <h1>Rekap Absensi di sistem LUNAPOS</h1>
+      <p class="sub-header">Jam masuk aktual dicocokkan otomatis ke jadwal shift terdekat</p>
+    </div>
   </div>
 
   <!-- 1. Konfigurasi Jadwal Shift -->
   <div class="config-card">
     <div class="config-header">
       <div>
-        <h3 style="display: inline-block;">⚙️ Master Jadwal Shift Kerja</h3>
+        <h3 style="display: inline-block;">Master Jadwal Shift Kerja</h3>
       </div>
       <div class="btn-group">
-        <button class="btn btn-tutorial" onclick="bukaModalTutorial()">📖 Tutorial</button>
-        <button class="btn btn-reset" onclick="resetShiftToDefault()">🔄 Reset</button>
+        <button class="btn btn-tutorial" onclick="bukaModalTutorial()">Tutorial</button>
+        <button class="btn btn-reset" onclick="resetShiftToDefault()">Reset</button>
         <button class="btn btn-add" onclick="tambahBarisShift()">+ Shift</button>
       </div>
     </div>
 
     <div id="shiftListContainer"></div>
 
-    <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-      <label for="toleranceInput" style="font-size: 13px; font-weight: 600;">Toleransi Keterlambatan:</label>
+    <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+      <label for="toleranceInput" class="tolerance-label">Toleransi Keterlambatan:</label>
       <input type="number" id="toleranceInput" value="0" min="0" style="width: 70px;" onchange="if(rawData.length) jalankanKalkulasi();">
-      <span style="font-size: 13px; color: #64748b;">Menit</span>
+      <span class="tolerance-unit">Menit</span>
     </div>
   </div>
 
   <!-- 2. Bagian Upload File Excel -->
-  <div class="upload-area">
-    <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
+  <div class="upload-zone" id="uploadZone">
+    <input type="file" id="excelFile" class="upload-input-hidden" accept=".xlsx, .xls, .csv">
+    <div class="upload-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 18a4.5 4.5 0 0 1-.5-8.98A5.5 5.5 0 0 1 17.3 8.02 4 4 0 0 1 17 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 11v7M9.5 13.5 12 11l2.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="upload-text"><strong>Klik untuk unggah</strong> atau tarik &amp; lepas file di sini</div>
+    <div class="upload-hint">Format .xlsx, .xls, atau .csv</div>
+    <div class="upload-filename" id="uploadFilename">
+      <span class="file-chip">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 3h7l4 4v14H7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M14 3v4h4" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <span id="uploadFilenameText"></span>
+        <button type="button" class="file-remove" onclick="hapusFileTerpilih(event)" title="Hapus file" aria-label="Hapus file">&times;</button>
+      </span>
+    </div>
   </div>
+  <div id="uploadStatus" class="upload-status"></div>
 
   <!-- 3. Dashboard Hasil Rekap -->
   <div id="dashboard" style="display: none;">
     <div class="action-bar">
       <div class="btn-group" style="margin-bottom: 8px;">
-        <button class="btn btn-export-excel" onclick="eksporKeExcel()">📥 Unduh Excel</button>
-        <button class="btn btn-export-pdf" onclick="eksporKePDF()">📄 Unduh PDF</button>
+        <button class="btn btn-export-excel" onclick="eksporKeExcel()">Unduh Excel</button>
+        <button class="btn btn-export-pdf" onclick="eksporKePDF()">Unduh PDF</button>
       </div>
-      <button class="btn btn-reset-all" onclick="resetSemuaData()">🗑️ Reset Data</button>
+      <button class="btn btn-reset-all" onclick="konfirmasiResetData()">Reset Data</button>
     </div>
 
     <div class="stats-grid">
@@ -464,27 +826,37 @@
     <div class="filter-section">
       <label for="filterOutlet"><strong>Filter Outlet:</strong></label>
       <select id="filterOutlet"></select>
+      <input type="text" id="searchNama" class="search-input" placeholder="Cari nama karyawan..." oninput="renderTable()">
     </div>
 
     <table id="mainTable">
       <thead>
         <tr>
-          <th>Nama Karyawan</th>
-          <th>Outlet</th>
-          <th class="center">Kehadiran</th>
-          <th class="number">Total Jam Kerja</th>
-          <th class="center">Jml Terlambat</th>
-          <th class="number">Total Terlambat</th>
+          <th class="sortable" id="th-nama" onclick="ubahSort('nama')">Nama Karyawan</th>
+          <th class="sortable" id="th-outlet" onclick="ubahSort('outlet')">Outlet</th>
+          <th class="sortable center" id="th-shifts" onclick="ubahSort('shifts')">Kehadiran</th>
+          <th class="sortable number" id="th-totalJam" onclick="ubahSort('totalJam')">Total Jam Kerja</th>
+          <th class="sortable center" id="th-terlambatCount" onclick="ubahSort('terlambatCount')">Jml Terlambat</th>
+          <th class="sortable number" id="th-totalMenitTerlambat" onclick="ubahSort('totalMenitTerlambat')">Total Terlambat</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
     </table>
   </div>
 
-  <!-- Footer Kredit Pembuat & Info Last Update -->
+  <!-- Footer Kredit Pembuat -->
   <div class="footer-credit">
-    Created by <strong>EMBERCINCAU</strong>
+    Created by <a href="https://github.com/embercincau" target="_blank" rel="noopener noreferrer" class="credit-link">EMBERCINCAU</a>
     <div class="last-update" id="lastUpdateText">Last Updated: August 2026</div>
+    
+    <!-- Tombol Geser (Switch) Mode Gelap di Bawah Credit -->
+    <div class="theme-switch-wrapper">
+      <label for="themeSwitchInput" class="theme-switch-label" id="themeStatusLabel">Mode Terang</label>
+      <label class="switch" title="Ganti Mode Terang / Gelap">
+        <input type="checkbox" id="themeSwitchInput" onchange="toggleDarkMode(this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
   </div>
 </div>
 
@@ -492,49 +864,49 @@
 <div id="tutorialModal" class="modal-overlay" onclick="if(event.target === this) tutupModalTutorial();">
   <div class="modal-content">
     <div class="modal-header">
-      <h3>📖 Panduan Rekap Absensi LUNAPOS</h3>
+      <h3>Panduan Rekap Absensi LUNAPOS</h3>
       <button class="modal-close" onclick="tutupModalTutorial()">&times;</button>
     </div>
     <div class="modal-body">
       <div class="tutorial-step">
         <h4>1. Sesuaikan Master Jadwal Shift</h4>
         <p>
-          Atur jam masuk resmi outlet Anda untuk hari <strong>Weekday (Senin–Jumat)</strong> dan <strong>Weekend (Sabtu–Minggu)</strong>.
+          Atur jam masuk resmi outlet Anda untuk hari <strong>Weekday (Senin–Jumat)</strong> dan <strong>Weekend (Sabtu–Minggu)</strong>[cite: 1].
         </p>
       </div>
 
       <div class="tutorial-step">
         <h4>2. Atur Toleransi Keterlambatan (Opsional)</h4>
         <p>
-          Tentukan batas toleransi keterlambatan (dalam menit).
+          Tentukan batas toleransi keterlambatan (dalam menit)[cite: 1].
         </p>
       </div>
 
       <div class="tutorial-step">
         <h4>3. Unggah File Excel Absensi LUNAPOS</h4>
         <p>
-          Pilih atau tarik file Excel laporan absensi LUNAPOS (<span class="tutorial-badge">.xlsx</span> / <span class="tutorial-badge">.csv</span>).
+          Pilih atau tarik file Excel laporan absensi LUNAPOS (<span class="tutorial-badge">.xlsx</span> / <span class="tutorial-badge">.csv</span>)[cite: 1].
         </p>
       </div>
 
       <div class="tutorial-step">
         <h4>4. Lihat Ringkasan & Filter Outlet</h4>
         <p>
-          Sistem otomatis mengagregasi total kehadiran, total jam kerja, frekuensi keterlambatan, dan total menit telat.
+          Sistem otomatis mengagregasi total kehadiran, total jam kerja, frekuensi keterlambatan, dan total menit telat[cite: 1].
         </p>
       </div>
 
       <div class="tutorial-step">
         <h4>5. Klik Nama Karyawan untuk Log Detail</h4>
         <p>
-          Klik pada nama karyawan yang bergaris bawah biru untuk membuka pop-up log rincian tanggal, hari, dan menit keterlambatan.
+          Klik pada nama karyawan yang bergaris bawah biru untuk membuka pop-up log rincian tanggal, hari, dan menit keterlambatan[cite: 1].
         </p>
       </div>
 
       <div class="tutorial-step">
         <h4>6. Ekspor Hasil Laporan</h4>
         <p>
-          Gunakan tombol <span class="tutorial-badge" style="background:#d1fae5; color:#065f46;">📥 Unduh Excel</span> atau <span class="tutorial-badge" style="background:#ffe4e6; color:#9f1239;">📄 Unduh PDF</span>.
+          Gunakan tombol <span class="tutorial-badge">Unduh Excel</span> atau <span class="tutorial-badge">Unduh PDF</span>[cite: 1].
         </p>
       </div>
     </div>
@@ -549,7 +921,7 @@
       <button class="modal-close" onclick="tutupModal()">&times;</button>
     </div>
     <div class="modal-body">
-      <div id="modalStatsSummary" style="margin-bottom: 14px; font-size: 13px; color: #475569;"></div>
+      <div id="modalStatsSummary" style="margin-bottom: 14px; font-size: 13px; color: var(--ink-muted);"></div>
       <div style="overflow-x: auto;">
         <table>
           <thead>
@@ -569,9 +941,61 @@
   </div>
 </div>
 
+<!-- Modal Popup Konfirmasi Aksi -->
+<div id="confirmModal" class="modal-overlay" onclick="if(event.target === this) tutupKonfirmasi();">
+  <div class="modal-content" style="max-width: 420px;">
+    <div class="modal-header">
+      <h3 id="confirmTitle">Konfirmasi</h3>
+      <button class="modal-close" onclick="tutupKonfirmasi()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmMessage" style="margin: 0 0 20px 0; color: var(--ink-muted); font-size: 13.5px; line-height: 1.6;"></p>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn btn-tutorial" onclick="tutupKonfirmasi()">Batal</button>
+        <button class="btn btn-reset-all" id="confirmYesBtn">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   let rawData = [];
   let calculatedSummary = {};
+  let currentSortKey = 'nama';
+  let currentSortDir = 'asc';
+  let confirmCallback = null;
+
+  function toggleDarkMode(isDark) {
+    if (typeof isDark === 'undefined') {
+      isDark = !document.body.classList.contains('dark');
+    }
+    if (isDark) {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+    try { localStorage.setItem('lunapos_theme', isDark ? 'dark' : 'light'); } catch (e) {}
+    updateThemeSwitch(isDark);
+  }
+
+  function updateThemeSwitch(isDark) {
+    const sw = document.getElementById('themeSwitchInput');
+    const lbl = document.getElementById('themeStatusLabel');
+    if (sw) sw.checked = isDark;
+    if (lbl) lbl.textContent = isDark ? 'Mode Gelap' : 'Mode Terang';
+  }
+
+  (function initTheme() {
+    let saved = null;
+    try { saved = localStorage.getItem('lunapos_theme'); } catch (e) {}
+    const prefersDark = saved ? saved === 'dark' : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (prefersDark) {
+      document.body.classList.add('dark');
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      updateThemeSwitch(prefersDark);
+    });
+  })();
 
   const defaultShifts = [
     { nama: 'Pagi', jamWeekday: '09:30', jamWeekend: '09:30' },
@@ -636,9 +1060,38 @@
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('tableBody').innerHTML = '';
     document.getElementById('filterOutlet').innerHTML = '';
+    document.getElementById('uploadStatus').style.display = 'none';
+    document.getElementById('uploadFilename').style.display = 'none';
+    const searchInput = document.getElementById('searchNama');
+    if (searchInput) searchInput.value = '';
     tutupModal();
     tutupModalTutorial();
   }
+
+  function konfirmasiResetData() {
+    konfirmasi(
+      'Semua data absensi yang sudah diunggah akan dihapus dan tidak bisa dikembalikan. Lanjutkan?',
+      resetSemuaData,
+      'Hapus Semua Data?'
+    );
+  }
+
+  function konfirmasi(pesan, callback, judul = 'Konfirmasi') {
+    document.getElementById('confirmTitle').innerText = judul;
+    document.getElementById('confirmMessage').innerText = pesan;
+    confirmCallback = callback;
+    document.getElementById('confirmModal').style.display = 'flex';
+  }
+
+  function tutupKonfirmasi() {
+    document.getElementById('confirmModal').style.display = 'none';
+    confirmCallback = null;
+  }
+
+  document.getElementById('confirmYesBtn').addEventListener('click', function() {
+    if (confirmCallback) confirmCallback();
+    tutupKonfirmasi();
+  });
 
   function bukaModalTutorial() {
     document.getElementById('tutorialModal').style.display = 'flex';
@@ -692,7 +1145,7 @@
   }
 
   function parseTanggalInfo(tglVal) {
-    if (!tglVal) return { isWeekend: false, labelTgl: '-', namaHari: '-' };
+    if (!tglVal) return { isWeekend: false, labelTgl: '-', namaHari: '-', rawTime: 0 };
 
     let dateObj = null;
     let labelTgl = tglVal.toString().trim();
@@ -725,11 +1178,12 @@
       return {
         isWeekend: (dayIndex === 0 || dayIndex === 6),
         labelTgl: labelTgl,
-        namaHari: hariIndo[dayIndex]
+        namaHari: hariIndo[dayIndex],
+        rawTime: dateObj.getTime()
       };
     }
 
-    return { isWeekend: false, labelTgl: labelTgl, namaHari: '-' };
+    return { isWeekend: false, labelTgl: labelTgl, namaHari: '-', rawTime: 0 };
   }
 
   function formatDisplayWaktu(str) {
@@ -780,28 +1234,114 @@
   renderShiftInputs(defaultShifts);
   setLastUpdateInfo();
 
-  document.getElementById('excelFile').addEventListener('change', function(e) {
+  const uploadZone = document.getElementById('uploadZone');
+  const excelFileInput = document.getElementById('excelFile');
+
+  excelFileInput.addEventListener('change', function(e) {
     const file = e.target.files[0];
-    if (!file) return;
+    if (file) prosesFileTerpilih(file);
+  });
+
+  ['dragenter', 'dragover'].forEach(evtName => {
+    uploadZone.addEventListener(evtName, function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadZone.classList.add('dragover');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach(evtName => {
+    uploadZone.addEventListener(evtName, function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadZone.classList.remove('dragover');
+    });
+  });
+
+  uploadZone.addEventListener('drop', function(e) {
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) prosesFileTerpilih(file);
+  });
+
+  function prosesFileTerpilih(file) {
+    tampilkanNamaFileTerpilih(file.name);
+    tampilkanStatusUpload('loading', `Memproses file "${file.name}"...`);
 
     const reader = new FileReader();
     reader.onload = function(evt) {
-      const data = new Uint8Array(evt.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      rawData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+      setTimeout(() => {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+          const parsedData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
-      if (rawData.length === 0) {
-        alert("File Excel kosong!");
-        return;
-      }
+          if (parsedData.length === 0) {
+            tampilkanStatusUpload('error', 'File yang diunggah kosong atau tidak memiliki baris data.');
+            return;
+          }
 
-      isiDropdownOutlet();
-      jalankanKalkulasi();
-      document.getElementById('dashboard').style.display = 'block';
+          const validasi = validasiKolomData(parsedData);
+          if (!validasi.valid) {
+            tampilkanStatusUpload('error', validasi.pesan);
+            return;
+          }
+
+          rawData = parsedData;
+          isiDropdownOutlet();
+          jalankanKalkulasi();
+          document.getElementById('dashboard').style.display = 'block';
+          tampilkanStatusUpload('success', `Berhasil memuat ${rawData.length} baris data dari "${file.name}".`);
+        } catch (err) {
+          tampilkanStatusUpload('error', 'Gagal membaca file. Pastikan formatnya .xlsx, .xls, atau .csv yang valid.');
+        }
+      }, 50);
+    };
+    reader.onerror = function() {
+      tampilkanStatusUpload('error', 'Gagal membaca file dari perangkat. Coba unggah ulang.');
     };
     reader.readAsArrayBuffer(file);
-  });
+  }
+
+  function tampilkanNamaFileTerpilih(nama) {
+    document.getElementById('uploadFilenameText').textContent = nama;
+    document.getElementById('uploadFilename').style.display = 'inline-flex';
+  }
+
+  function hapusFileTerpilih(e) {
+    if (e) e.stopPropagation();
+    excelFileInput.value = '';
+    document.getElementById('uploadFilename').style.display = 'none';
+    document.getElementById('uploadStatus').style.display = 'none';
+  }
+
+  function tampilkanStatusUpload(tipe, pesan) {
+    const el = document.getElementById('uploadStatus');
+    el.className = 'upload-status ' + tipe;
+    el.innerHTML = tipe === 'loading' ? `<span class="spinner"></span><span>${pesan}</span>` : `<span>${pesan}</span>`;
+    el.style.display = 'flex';
+  }
+
+  function validasiKolomData(rows) {
+    const sample = rows[0];
+    const keys = Object.keys(sample).map(k => k.toLowerCase());
+    const cariKolom = (kandidat) => keys.some(k => kandidat.some(c => k.includes(c)));
+
+    const missing = [];
+    if (!cariKolom(['nama'])) missing.push('Nama Karyawan');
+    if (!cariKolom(['outlet'])) missing.push('Outlet');
+    if (!cariKolom(['tanggal', 'tgl'])) missing.push('Tanggal');
+    if (!cariKolom(['absensi masuk', 'masuk'])) missing.push('Absensi Masuk');
+    if (!cariKolom(['total jam kerja', 'total jam'])) missing.push('Total Jam Kerja');
+
+    if (missing.length > 0) {
+      return {
+        valid: false,
+        pesan: `Kolom berikut tidak ditemukan di file: ${missing.join(', ')}. Pastikan header kolom sesuai format laporan LUNAPOS, lalu unggah ulang.`
+      };
+    }
+    return { valid: true };
+  }
 
   function isiDropdownOutlet() {
     const outletSelect = document.getElementById('filterOutlet');
@@ -904,24 +1444,102 @@
           shift: namaShiftDipakai,
           jadwalMasuk: jadwalMasukStr,
           absenMasuk: formatDisplayWaktu(absenMasukStr),
-          menitTerlambat: menitTerlambat
+          menitTerlambat: menitTerlambat,
+          rawTime: tglInfo.rawTime
         });
       }
     });
 
-    document.getElementById('statTotalShift').innerText = grandTotalShift;
-    document.getElementById('statTotalJam').innerText = grandTotalJam.toFixed(1) + ' Jam';
-    document.getElementById('statTotalTerlambat').innerText = grandTotalTerlambatCount + 'x';
-    document.getElementById('statTotalMenitTerlambat').innerText = grandTotalTerlambatMenit + ' Menit';
+    // Urutkan rincian keterlambatan per karyawan dari tanggal paling awal ke terbaru
+    Object.values(calculatedSummary).forEach(item => {
+      item.rincianTerlambat.sort((a, b) => {
+        if (a.rawTime && b.rawTime && a.rawTime !== b.rawTime) {
+          return a.rawTime - b.rawTime;
+        }
+        return a.tanggal.localeCompare(b.tanggal, 'id', { numeric: true });
+      });
+    });
 
+    updateStatValue('statTotalShift', grandTotalShift);
+    updateStatValue('statTotalJam', grandTotalJam.toFixed(1) + ' Jam');
+    updateStatValue('statTotalTerlambat', grandTotalTerlambatCount + 'x');
+    updateStatValue('statTotalMenitTerlambat', grandTotalTerlambatMenit + ' Menit');
+
+    renderTable();
+  }
+
+  function updateStatValue(id, value) {
+    const el = document.getElementById(id);
+    el.innerText = value;
+    el.classList.remove('pulse');
+    void el.offsetWidth;
+    el.classList.add('pulse');
+  }
+
+  function getSortedFilteredItems(applySearch) {
+    let items = Object.values(calculatedSummary);
+
+    if (applySearch) {
+      const searchInput = document.getElementById('searchNama');
+      const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      if (q) items = items.filter(it => it.nama.toLowerCase().includes(q));
+    }
+
+    items = items.slice().sort((a, b) => {
+      const va = a[currentSortKey];
+      const vb = b[currentSortKey];
+      let cmp;
+      if (typeof va === 'string') {
+        cmp = va.localeCompare(vb, 'id', { sensitivity: 'base' });
+      } else {
+        cmp = va - vb;
+      }
+      return currentSortDir === 'asc' ? cmp : -cmp;
+    });
+
+    return items;
+  }
+
+  function ubahSort(key) {
+    if (currentSortKey === key) {
+      currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSortKey = key;
+      currentSortDir = key === 'nama' || key === 'outlet' ? 'asc' : 'desc';
+    }
+    renderTable();
+  }
+
+  function updateSortIndicators() {
+    const labels = {
+      nama: 'Nama Karyawan',
+      outlet: 'Outlet',
+      shifts: 'Kehadiran',
+      totalJam: 'Total Jam Kerja',
+      terlambatCount: 'Jml Terlambat',
+      totalMenitTerlambat: 'Total Terlambat'
+    };
+    Object.keys(labels).forEach(key => {
+      const th = document.getElementById('th-' + key);
+      if (!th) return;
+      const arrow = currentSortKey === key ? (currentSortDir === 'asc' ? ' \u25B2' : ' \u25BC') : '';
+      th.textContent = labels[key] + arrow;
+    });
+  }
+
+  function renderTable() {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
 
-    const sortedSummary = Object.values(calculatedSummary).sort((a, b) => {
-      return a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' });
-    });
+    const items = getSortedFilteredItems(true);
 
-    sortedSummary.forEach(item => {
+    if (items.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--ink-muted); padding: 18px; font-size: 13.5px;">Tidak ada karyawan yang cocok dengan pencarian.</td></tr>`;
+      updateSortIndicators();
+      return;
+    }
+
+    items.forEach(item => {
       const tr = document.createElement('tr');
       const badgeLate = item.terlambatCount > 0 
         ? `<span class="late-badge">${item.terlambatCount}x</span>` 
@@ -937,6 +1555,8 @@
       `;
       tbody.appendChild(tr);
     });
+
+    updateSortIndicators();
   }
 
   function bukaModalDetail(key) {
@@ -952,7 +1572,7 @@
     tbody.innerHTML = '';
 
     if (data.rincianTerlambat.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #16a34a; padding: 18px;">🎉 Karyawan ini tidak pernah terlambat!</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--accent); padding: 18px; font-size: 13.5px;">Karyawan ini tidak pernah terlambat.</td></tr>`;
     } else {
       data.rincianTerlambat.forEach(r => {
         const badgeDay = r.isWeekend 
@@ -965,8 +1585,8 @@
           <td>${r.hari} ${badgeDay}</td>
           <td>${r.shift}</td>
           <td class="center">${r.jadwalMasuk}</td>
-          <td class="center" style="color: #dc2626; font-weight: bold;">${r.absenMasuk}</td>
-          <td class="number" style="color: #dc2626; font-weight: bold;">+${r.menitTerlambat} Mnt</td>
+          <td class="center" style="color: var(--danger); font-weight: bold;">${r.absenMasuk}</td>
+          <td class="number" style="color: var(--danger); font-weight: bold;">+${r.menitTerlambat} Mnt</td>
         `;
         tbody.appendChild(tr);
       });
@@ -980,9 +1600,7 @@
   }
 
   function eksporKeExcel() {
-    const items = Object.values(calculatedSummary).sort((a, b) => {
-      return a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' });
-    });
+    const items = getSortedFilteredItems(false);
 
     if (items.length === 0) {
       alert("Tidak ada data untuk diekspor!");
@@ -1038,9 +1656,7 @@
   }
 
   function eksporKePDF() {
-    const items = Object.values(calculatedSummary).sort((a, b) => {
-      return a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' });
-    });
+    const items = getSortedFilteredItems(false);
 
     if (items.length === 0) {
       alert("Tidak ada data untuk dicetak!");
