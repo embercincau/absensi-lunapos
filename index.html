@@ -161,7 +161,7 @@
       background: var(--surface);
       color: var(--ink);
     }
-    .shift-row input:focus, select:focus, input[type="number"]:focus {
+    .shift-row input:focus, select:focus, input[type="number"]:focus, textarea:focus {
       outline: none;
       border-color: var(--accent);
       box-shadow: 0 0 0 3px var(--accent-soft);
@@ -185,6 +185,8 @@
     .btn:active { transform: translateY(1px); }
     .btn-tutorial { background-color: var(--surface); color: var(--ink); border-color: var(--border); box-shadow: var(--shadow-sm); }
     .btn-tutorial:hover { background-color: var(--surface-muted); }
+    .btn-feedback { background-color: var(--surface); color: var(--accent-dark); border-color: var(--accent); box-shadow: var(--shadow-sm); }
+    .btn-feedback:hover { background-color: var(--accent-soft); }
     .btn-add {
       background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
       color: white;
@@ -402,7 +404,6 @@
       font-weight: 600;
     }
 
-    /* Hapus panah naik/turun (spinner/stepper) pada input number */
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button {
       -webkit-appearance: none;
@@ -500,7 +501,7 @@
       color: var(--ink-faint);
     }
 
-    /* Switch Toggle Tema (Geser) di Bawah Credit */
+    /* Switch Toggle Tema */
     .theme-switch-wrapper {
       display: flex;
       align-items: center;
@@ -646,6 +647,39 @@
       font-weight: 600;
     }
 
+    /* Form Feedback Modal */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--ink);
+      box-sizing: border-box;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    textarea.form-control {
+      resize: vertical;
+      min-height: 100px;
+    }
+
     /* RESPONSIVE MOBILE VIEW */
     @media screen and (max-width: 768px) {
       body {
@@ -755,6 +789,7 @@
         <h3 style="display: inline-block;">Master Jadwal Shift Kerja</h3>
       </div>
       <div class="btn-group">
+        <button class="btn btn-feedback" onclick="bukaModalFeedback()">💬 Kritik &amp; Saran</button>
         <button class="btn btn-tutorial" onclick="bukaModalTutorial()">Tutorial</button>
         <button class="btn btn-reset" onclick="resetShiftToDefault()">Reset</button>
         <button class="btn btn-add" onclick="tambahBarisShift()">+ Shift</button>
@@ -860,6 +895,33 @@
   </div>
 </div>
 
+<!-- Modal Popup Kritik & Saran -->
+<div id="feedbackModal" class="modal-overlay" onclick="if(event.target === this) tutupModalFeedback();">
+  <div class="modal-content" style="max-width: 480px;">
+    <div class="modal-header">
+      <h3>Kirim Kritik &amp; Saran</h3>
+      <button class="modal-close" onclick="tutupModalFeedback()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="feedbackForm" onsubmit="kirimKritikSaran(event)">
+        <div class="form-group">
+          <label for="feedbackOutlet">Nama Outlet (Opsional):</label>
+          <input type="text" id="feedbackOutlet" class="form-control" placeholder="Contoh: Kopi Dewa 19 - Surabaya">
+        </div>
+        <div class="form-group">
+          <label for="feedbackPesan">Kritik, Saran, atau Masukan: <span style="color: var(--danger);">*</span></label>
+          <textarea id="feedbackPesan" class="form-control" placeholder="Tuliskan masukan atau kendala yang Anda alami..." required></textarea>
+        </div>
+        <div id="feedbackStatus" style="display: none; padding: 10px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 12px;"></div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn btn-tutorial" onclick="tutupModalFeedback()">Batal</button>
+          <button type="submit" class="btn btn-add" id="feedbackSubmitBtn">Kirim Masukan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Popup Tutorial Penggunaan -->
 <div id="tutorialModal" class="modal-overlay" onclick="if(event.target === this) tutupModalTutorial();">
   <div class="modal-content">
@@ -959,6 +1021,9 @@
 </div>
 
 <script>
+  // Tempelkan Web App URL Google Apps Script Anda di sini:
+  const GOOGLE_SCRIPT_URL = "URL_GOOGLE_APPS_SCRIPT_ANDA_DI_SINI";
+
   let rawData = [];
   let calculatedSummary = {};
   let currentSortKey = 'nama';
@@ -1066,6 +1131,7 @@
     if (searchInput) searchInput.value = '';
     tutupModal();
     tutupModalTutorial();
+    tutupModalFeedback();
   }
 
   function konfirmasiResetData() {
@@ -1099,6 +1165,59 @@
 
   function tutupModalTutorial() {
     document.getElementById('tutorialModal').style.display = 'none';
+  }
+
+  function bukaModalFeedback() {
+    document.getElementById('feedbackModal').style.display = 'flex';
+    document.getElementById('feedbackStatus').style.display = 'none';
+  }
+
+  function tutupModalFeedback() {
+    document.getElementById('feedbackModal').style.display = 'none';
+  }
+
+  async function kirimKritikSaran(e) {
+    e.preventDefault();
+    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("URL_GOOGLE_APPS_SCRIPT")) {
+      alert("Harap atur GOOGLE_SCRIPT_URL di dalam script dengan URL Google Apps Script Anda terlebih dahulu.");
+      return;
+    }
+
+    const outlet = document.getElementById('feedbackOutlet').value.trim();
+    const pesan = document.getElementById('feedbackPesan').value.trim();
+    const btn = document.getElementById('feedbackSubmitBtn');
+    const statusEl = document.getElementById('feedbackStatus');
+
+    btn.disabled = true;
+    btn.innerText = "Mengirim...";
+    statusEl.style.display = 'none';
+
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ outlet: outlet, pesan: pesan })
+      });
+
+      statusEl.style.display = 'block';
+      statusEl.style.background = 'var(--teal-soft)';
+      statusEl.style.color = 'var(--teal)';
+      statusEl.innerText = "Terima kasih! Kritik dan saran berhasil dikirim.";
+      document.getElementById('feedbackForm').reset();
+
+      setTimeout(() => {
+        tutupModalFeedback();
+      }, 1500);
+    } catch (err) {
+      statusEl.style.display = 'block';
+      statusEl.style.background = 'var(--danger-soft)';
+      statusEl.style.color = 'var(--danger)';
+      statusEl.innerText = "Gagal mengirim masukan. Pastikan koneksi internet stabil.";
+    } finally {
+      btn.disabled = false;
+      btn.innerText = "Kirim Masukan";
+    }
   }
 
   function ambilDaftarShift() {
@@ -1450,7 +1569,6 @@
       }
     });
 
-    // Urutkan rincian keterlambatan per karyawan dari tanggal paling awal ke terbaru
     Object.values(calculatedSummary).forEach(item => {
       item.rincianTerlambat.sort((a, b) => {
         if (a.rawTime && b.rawTime && a.rawTime !== b.rawTime) {
@@ -1665,30 +1783,116 @@
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'pt', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
-    doc.setFontSize(16);
-    doc.text("Laporan Rekapitulasi Absensi LUNAPOS", 40, 45);
+    // Informasi Filter & Tanggal
+    const selectedOutlet = document.getElementById('filterOutlet').value;
+    const outletText = selectedOutlet === 'ALL' ? 'Semua Outlet' : selectedOutlet;
+    const today = new Date();
+    const tglCetak = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
+    // Kop Dokumen Resmi
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(20, 24, 38);
+    doc.text("LAPORAN REKAPITULASI KEHADIRAN & KETERLAMBATAN KARYAWAN", pageWidth / 2, 42, { align: "center" });
+
+    doc.setFontSize(9.5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(85, 95, 115);
+    doc.text(`Sumber Data: Sistem LUNAPOS   |   Outlet: ${outletText}   |   Tanggal Cetak: ${tglCetak}`, pageWidth / 2, 58, { align: "center" });
+
+    // Garis Kop Pembatas
+    doc.setDrawColor(210, 215, 228);
+    doc.setLineWidth(1);
+    doc.line(36, 68, pageWidth - 36, 68);
+
+    // Data Tabel
     const rows = items.map((item, idx) => [
       idx + 1,
       item.nama,
       item.outlet,
-      item.shifts,
+      item.shifts + " Shift",
       item.totalJam.toFixed(1) + " Jam",
-      item.terlambatCount + "x",
-      item.totalMenitTerlambat + " Mnt"
+      item.terlambatCount > 0 ? `${item.terlambatCount}x` : '0x',
+      item.totalMenitTerlambat > 0 ? `${item.totalMenitTerlambat} Mnt` : '0 Mnt'
     ]);
 
     doc.autoTable({
-      head: [['No', 'Nama Karyawan', 'Outlet', 'Kehadiran', 'Total Jam', 'Terlambat', 'Total Mnt']],
+      head: [['No', 'Nama Karyawan', 'Outlet', 'Kehadiran', 'Total Jam Kerja', 'Jml Telat', 'Total Telat']],
       body: rows,
-      startY: 65,
+      startY: 78,
       theme: 'grid',
-      headStyles: { fillColor: [37, 99, 235], textColor: 255 },
-      styles: { fontSize: 9 }
+      headStyles: {
+        fillColor: [88, 71, 224], // Deep Accent Purple Resmi
+        textColor: 255,
+        fontSize: 8.5,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      styles: {
+        fontSize: 8,
+        cellPadding: 5,
+        lineColor: [224, 228, 238],
+        lineWidth: 0.5,
+        textColor: [20, 24, 38]
+      },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 26 },
+        1: { halign: 'left', cellWidth: 125 },
+        2: { halign: 'left', cellWidth: 105 },
+        3: { halign: 'center', cellWidth: 65 },
+        4: { halign: 'right', cellWidth: 75 },
+        5: { halign: 'center', cellWidth: 55 },
+        6: { halign: 'right', cellWidth: 72 }
+      },
+      alternateRowStyles: {
+        fillColor: [247, 248, 252]
+      },
+      margin: { left: 36, right: 36, bottom: 120 }
     });
 
-    doc.save("Laporan_Rekap_Absensi_LUNAPOS.pdf");
+    // Periksa sisa ruang halaman untuk Kolom Tanda Tangan
+    let finalY = doc.lastAutoTable.finalY + 28;
+    if (finalY + 95 > pageHeight - 35) {
+      doc.addPage();
+      finalY = 50;
+    }
+
+    const ttdY = finalY;
+    const colLeft = 60;
+    const colRight = pageWidth - 195;
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(30, 35, 45);
+
+    // Tanda Tangan Kiri (Pembuat)
+    doc.text("Dibuat Oleh,", colLeft, ttdY);
+    doc.text("Supervisor / PIC Absensi", colLeft, ttdY + 12);
+
+    doc.line(colLeft, ttdY + 62, colLeft + 125, ttdY + 62);
+    doc.text("( ................................................ )", colLeft, ttdY + 74);
+
+    // Tanda Tangan Kanan (Mengetahui / Approval)
+    doc.text(`Dicetak: ${tglCetak}`, colRight, ttdY);
+    doc.text("Mengetahui / Disetujui,", colRight, ttdY + 12);
+
+    doc.line(colRight, ttdY + 62, colRight + 125, ttdY + 62);
+    doc.text("( ................................................ )", colRight, ttdY + 74);
+
+    // Footer Nomor Halaman
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7.5);
+      doc.setTextColor(140, 145, 160);
+      doc.text(`Dokumen Rekapitulasi Absensi LUNAPOS | Halaman ${i} dari ${totalPages}`, pageWidth / 2, pageHeight - 16, { align: 'center' });
+    }
+
+    const fileOutletName = outletText.replace(/[\/\s]+/g, '_');
+    doc.save(`Laporan_Rekap_Absensi_LUNAPOS_${fileOutletName}.pdf`);
   }
 </script>
 
