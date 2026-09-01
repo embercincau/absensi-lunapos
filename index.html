@@ -848,7 +848,7 @@
         <button class="btn btn-feedback" onclick="bukaModalFeedback()">💬 Kritik &amp; Saran</button>
         <button class="btn btn-tutorial" onclick="bukaModalTutorial()">Tutorial</button>
         <button class="btn btn-reset" onclick="resetShiftToDefault()">Reset</button>
-        <button class="btn btn-add" onclick="tambahBarisShift()">+ Shift</button>
+        <button class="btn btn-add" onclick="tambahBarisShift(); simpanPengaturanLokal();">+ Shift</button>
       </div>
     </div>
 
@@ -856,7 +856,7 @@
 
     <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
       <label for="toleranceInput" class="tolerance-label">Toleransi Keterlambatan:</label>
-      <input type="number" id="toleranceInput" value="0" min="0" style="width: 70px;" onchange="if(rawData.length) jalankanKalkulasi();">
+      <input type="number" id="toleranceInput" value="0" min="0" style="width: 70px;" onchange="simpanPengaturanLokal(); if(rawData.length) jalankanKalkulasi();">
       <span class="tolerance-unit">Menit</span>
     </div>
   </div>
@@ -989,7 +989,7 @@
       <div class="tutorial-step">
         <h4>1. Atur Jadwal Shift Fleksibel per Hari</h4>
         <p>
-          Tentukan jam masuk resmi dan pilih hari aktif (Sen, Sel, Rab, Kam, Jum, Sab, Min) untuk setiap shift. Jam masuk aktual karyawan pada hari tertentu akan otomatis dicocokkan dengan shift yang aktif di hari tersebut.
+          Tentukan jam masuk resmi dan pilih hari aktif (Sen, Sel, Rab, Kam, Jum, Sab, Min) untuk setiap shift. Jam masuk aktual karyawan pada hari tertentu akan otomatis dicocokkan dengan shift yang aktif di hari tersebut. Pengaturan ini otomatis tersimpan di perangkat Anda.
         </p>
       </div>
 
@@ -1086,7 +1086,7 @@
 
 <script>
   // Tempelkan Web App URL Google Apps Script Anda di sini:
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzdFbjD2C_TRC_k59F5dNeOJ35TiX8ykMkiFs5-NLHlU-mQsWyBFUd4Yv5S-SNkE1US/exec";
+  const GOOGLE_SCRIPT_URL = "URL_GOOGLE_APPS_SCRIPT_ANDA_DI_SINI";
 
   let rawData = [];
   let calculatedSummary = {};
@@ -1133,6 +1133,35 @@
     { nama: 'Siang', jam: '00:00', days: [1, 2, 3, 4, 5, 6, 0] }
   ];
 
+  function simpanPengaturanLokal() {
+    try {
+      const shifts = ambilDaftarShiftRaw();
+      const toleransi = document.getElementById('toleranceInput').value || "0";
+      localStorage.setItem('lunapos_saved_shifts', JSON.stringify(shifts));
+      localStorage.setItem('lunapos_saved_tolerance', toleransi);
+    } catch (e) {}
+  }
+
+  function muatPengaturanLokal() {
+    try {
+      const savedShifts = localStorage.getItem('lunapos_saved_shifts');
+      const savedTolerance = localStorage.getItem('lunapos_saved_tolerance');
+
+      if (savedTolerance !== null) {
+        document.getElementById('toleranceInput').value = savedTolerance;
+      }
+
+      if (savedShifts) {
+        const parsed = JSON.parse(savedShifts);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          renderShiftInputs(parsed);
+          return;
+        }
+      }
+    } catch (e) {}
+    renderShiftInputs(defaultShifts);
+  }
+
   function setLastUpdateInfo() {
     const el = document.getElementById('lastUpdateText');
     if (document.lastModified) {
@@ -1170,7 +1199,7 @@
 
     let daysCheckboxes = dayLabels.map(d => `
       <label class="day-pill">
-        <input type="checkbox" class="shift-day-cb" value="${d.day}" ${days.includes(d.day) ? 'checked' : ''} onchange="if(rawData.length) jalankanKalkulasi();">
+        <input type="checkbox" class="shift-day-cb" value="${d.day}" ${days.includes(d.day) ? 'checked' : ''} onchange="simpanPengaturanLokal(); if(rawData.length) jalankanKalkulasi();">
         <span>${d.label}</span>
       </label>
     `).join('');
@@ -1179,14 +1208,14 @@
       <div class="shift-main-inputs">
         <div class="input-field-group">
           <label>Nama Shift:</label>
-          <input type="text" class="shift-name-input" placeholder="contoh: Pagi / Siang" value="${nama}" onchange="if(rawData.length) jalankanKalkulasi();">
+          <input type="text" class="shift-name-input" placeholder="contoh: Pagi / Siang" value="${nama}" onchange="simpanPengaturanLokal(); if(rawData.length) jalankanKalkulasi();">
         </div>
         <div class="input-field-group">
           <label>Jadwal Jam Masuk:</label>
-          <input type="time" class="shift-time-input" value="${jam}" onchange="if(rawData.length) jalankanKalkulasi();">
+          <input type="time" class="shift-time-input" value="${jam}" onchange="simpanPengaturanLokal(); if(rawData.length) jalankanKalkulasi();">
         </div>
         <div>
-          <button class="btn btn-del" onclick="this.closest('.shift-row').remove(); if(rawData.length) jalankanKalkulasi();">Hapus</button>
+          <button class="btn btn-del" onclick="this.closest('.shift-row').remove(); simpanPengaturanLokal(); if(rawData.length) jalankanKalkulasi();">Hapus</button>
         </div>
       </div>
       <div class="shift-days-selector">
@@ -1200,6 +1229,7 @@
   function resetShiftToDefault() {
     renderShiftInputs(defaultShifts);
     document.getElementById('toleranceInput').value = 0;
+    simpanPengaturanLokal();
     if (rawData.length) jalankanKalkulasi();
   }
 
@@ -1329,9 +1359,9 @@
     }
   }
 
-  function ambilDaftarShift() {
+  function ambilDaftarShiftRaw() {
     const rows = document.querySelectorAll('#shiftListContainer .shift-row');
-    const shifts = [];
+    const list = [];
     rows.forEach(r => {
       const nameInput = r.querySelector('.shift-name-input');
       const timeInput = r.querySelector('.shift-time-input');
@@ -1342,15 +1372,20 @@
       const activeDays = Array.from(dayCheckboxes).map(cb => parseInt(cb.value, 10));
 
       if (jam) {
-        shifts.push({
-          nama: nama || 'Shift',
-          jam: jam,
-          menit: parseMenitDariStringWaktu(jam),
-          activeDays: activeDays
-        });
+        list.push({ nama, jam, days: activeDays });
       }
     });
-    return shifts;
+    return list;
+  }
+
+  function ambilDaftarShift() {
+    const rawList = ambilDaftarShiftRaw();
+    return rawList.map(s => ({
+      nama: s.nama || 'Shift',
+      jam: s.jam,
+      menit: parseMenitDariStringWaktu(s.jam),
+      activeDays: s.days
+    }));
   }
 
   function cariShiftTerdekat(menitMasuk, dayIndex, daftarShift) {
@@ -1464,7 +1499,7 @@
     return 0;
   }
 
-  renderShiftInputs(defaultShifts);
+  muatPengaturanLokal();
   setLastUpdateInfo();
 
   const uploadZone = document.getElementById('uploadZone');
@@ -1524,7 +1559,6 @@
           isiDropdownOutlet();
           jalankanKalkulasi();
 
-          // Deteksi outlet utama & kirim log background diam-diam
           const outletKey = Object.keys(rawData[0]).find(k => k.toLowerCase().includes('outlet')) || 'Outlet';
           detectedOutletName = rawData[0][outletKey] ? rawData[0][outletKey].toString().trim() : 'Outlet Tidak Bernama';
           kirimLogAksesOtomatis(detectedOutletName, file.name, rawData.length);
