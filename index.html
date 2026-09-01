@@ -475,6 +475,39 @@
       border-bottom-color: var(--accent);
     }
 
+    /* Checkbox & Status Izin Telat */
+    .checkbox-izin-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      user-select: none;
+      color: var(--ink-muted);
+    }
+    .checkbox-izin {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--teal);
+      cursor: pointer;
+    }
+    .badge-izin {
+      background: var(--teal-soft);
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+    tr.row-izin td {
+      opacity: 0.65;
+    }
+    tr.row-izin td.text-late {
+      text-decoration: line-through;
+    }
+
     /* Footer Kredit Pembuat */
     .footer-credit {
       text-align: center;
@@ -571,7 +604,7 @@
     .modal-content {
       background: var(--surface);
       width: 90%;
-      max-width: 760px;
+      max-width: 820px;
       max-height: 85vh;
       border-radius: var(--radius-lg);
       border: 1px solid var(--border);
@@ -933,42 +966,49 @@
       <div class="tutorial-step">
         <h4>1. Sesuaikan Master Jadwal Shift</h4>
         <p>
-          Atur jam masuk resmi outlet Anda untuk hari <strong>Weekday (Senin–Jumat)</strong> dan <strong>Weekend (Sabtu–Minggu)</strong>.
+          Atur jam masuk resmi outlet Anda untuk hari <strong>Weekday (Senin–Jumat)</strong> dan <strong>Weekend (Sabtu–Minggu)</strong>. Anda juga dapat menambah atau menghapus shift sesuai kebutuhan.
         </p>
       </div>
 
       <div class="tutorial-step">
         <h4>2. Atur Toleransi Keterlambatan (Opsional)</h4>
         <p>
-          Tentukan batas toleransi keterlambatan (dalam menit).
+          Tentukan batas toleransi keterlambatan (dalam menit). Sistem hanya akan menghitung telat jika selisih jam masuk aktual melebihi angka toleransi ini.
         </p>
       </div>
 
       <div class="tutorial-step">
         <h4>3. Unggah File Excel Absensi LUNAPOS</h4>
         <p>
-          Pilih atau tarik file Excel laporan absensi LUNAPOS (<span class="tutorial-badge">.xlsx</span> / <span class="tutorial-badge">.csv</span>).
+          Pilih atau tarik file laporan absensi dari LUNAPOS (<span class="tutorial-badge">.xlsx</span>, <span class="tutorial-badge">.xls</span>, atau <span class="tutorial-badge">.csv</span>). Seluruh pemrosesan berjalan langsung di browser secara aman.
         </p>
       </div>
 
       <div class="tutorial-step">
-        <h4>4. Lihat Ringkasan & Filter Outlet</h4>
+        <h4>4. Filter Outlet &amp; Pencarian Karyawan</h4>
         <p>
-          Sistem otomatis mengagregasi total kehadiran, total jam kerja, frekuensi keterlambatan, dan total menit telat.
+          Gunakan dropdown filter outlet dan kotak pencarian nama untuk melihat rekapitulasi data kehadiran, jam kerja, dan jumlah keterlambatan secara instan.
         </p>
       </div>
 
       <div class="tutorial-step">
-        <h4>5. Klik Nama Karyawan untuk Log Detail</h4>
+        <h4>5. Log Rincian &amp; Fitur Izin Telat</h4>
         <p>
-          Klik pada nama karyawan yang bergaris bawah biru untuk membuka pop-up log rincian tanggal, hari, dan menit keterlambatan.
+          Klik pada nama karyawan (teks ungu) untuk membuka log rincian tanggal telat. Centang kotak <strong>Izin Telat</strong> jika keterlambatan pada tanggal tersebut telah diampuni/disetujui — total menit dan frekuensi telat akan otomatis berkurang secara langsung.
         </p>
       </div>
 
       <div class="tutorial-step">
-        <h4>6. Ekspor Hasil Laporan</h4>
+        <h4>6. Ekspor Laporan Resmi</h4>
         <p>
-          Gunakan tombol <span class="tutorial-badge">Unduh Excel</span> atau <span class="tutorial-badge">Unduh PDF</span>.
+          Unduh hasil rekap dalam format <span class="tutorial-badge">Unduh Excel</span> (termasuk status izin per tanggal) atau <span class="tutorial-badge">Unduh PDF</span> yang sudah dilengkapi kop resmi dan kolom tanda tangan approval.
+        </p>
+      </div>
+
+      <div class="tutorial-step">
+        <h4>7. Kritik &amp; Saran</h4>
+        <p>
+          Gunakan tombol <span class="tutorial-badge">💬 Kritik &amp; Saran</span> di bagian atas untuk mengirimkan masukan atau melaporkan kendala penggunaan secara langsung.
         </p>
       </div>
     </div>
@@ -994,6 +1034,7 @@
               <th class="center">Jadwal Masuk</th>
               <th class="center">Absen Masuk</th>
               <th class="number">Terlambat</th>
+              <th class="center">Izin Telat</th>
             </tr>
           </thead>
           <tbody id="modalTableBody"></tbody>
@@ -1029,6 +1070,7 @@
   let currentSortKey = 'nama';
   let currentSortDir = 'asc';
   let confirmCallback = null;
+  let activeModalKey = null;
 
   function toggleDarkMode(isDark) {
     if (typeof isDark === 'undefined') {
@@ -1121,6 +1163,7 @@
   function resetSemuaData() {
     rawData = [];
     calculatedSummary = {};
+    activeModalKey = null;
     document.getElementById('excelFile').value = '';
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('tableBody').innerHTML = '';
@@ -1487,11 +1530,17 @@
     const selectedOutlet = document.getElementById('filterOutlet').value;
     const toleransi = parseInt(document.getElementById('toleranceInput').value, 10) || 0;
 
+    // Simpan status izin sebelumnya jika ada re-kalkulasi
+    const prevIzinMap = {};
+    Object.values(calculatedSummary).forEach(emp => {
+      emp.rincianTerlambat.forEach(r => {
+        if (r.isIzin) {
+          prevIzinMap[`${emp.key}_${r.tanggal}_${r.absenMasuk}`] = true;
+        }
+      });
+    });
+
     calculatedSummary = {};
-    let grandTotalShift = 0;
-    let grandTotalJam = 0;
-    let grandTotalTerlambatCount = 0;
-    let grandTotalTerlambatMenit = 0;
 
     rawData.forEach(row => {
       const namaKey = Object.keys(row).find(k => k.toLowerCase().includes('nama')) || 'Nama Karyawan';
@@ -1529,13 +1578,6 @@
         }
       }
 
-      grandTotalShift++;
-      grandTotalJam += jamKerja;
-      if (isTerlambat) {
-        grandTotalTerlambatCount++;
-        grandTotalTerlambatMenit += menitTerlambat;
-      }
-
       const key = `${nama}_${outlet}`;
       if (!calculatedSummary[key]) {
         calculatedSummary[key] = {
@@ -1554,17 +1596,20 @@
       calculatedSummary[key].totalJam += jamKerja;
 
       if (isTerlambat) {
-        calculatedSummary[key].terlambatCount++;
-        calculatedSummary[key].totalMenitTerlambat += menitTerlambat;
+        const formattedAbsen = formatDisplayWaktu(absenMasukStr);
+        const izinKey = `${key}_${tglInfo.labelTgl}_${formattedAbsen}`;
+        const isIzinSaved = !!prevIzinMap[izinKey];
+
         calculatedSummary[key].rincianTerlambat.push({
           tanggal: tglInfo.labelTgl,
           hari: tglInfo.namaHari,
           isWeekend: tglInfo.isWeekend,
           shift: namaShiftDipakai,
           jadwalMasuk: jadwalMasukStr,
-          absenMasuk: formatDisplayWaktu(absenMasukStr),
+          absenMasuk: formattedAbsen,
           menitTerlambat: menitTerlambat,
-          rawTime: tglInfo.rawTime
+          rawTime: tglInfo.rawTime,
+          isIzin: isIzinSaved
         });
       }
     });
@@ -1578,16 +1623,76 @@
       });
     });
 
+    hitungUlangRingkasanGlobal();
+  }
+
+  function hitungUlangRingkasanGlobal() {
+    let grandTotalShift = 0;
+    let grandTotalJam = 0;
+    let grandTotalTerlambatCount = 0;
+    let grandTotalTerlambatMenit = 0;
+
+    Object.values(calculatedSummary).forEach(emp => {
+      grandTotalShift += emp.shifts;
+      grandTotalJam += emp.totalJam;
+
+      let empTelatCount = 0;
+      let empTelatMenit = 0;
+      emp.rincianTerlambat.forEach(r => {
+        if (!r.isIzin) {
+          empTelatCount++;
+          empTelatMenit += r.menitTerlambat;
+        }
+      });
+
+      emp.terlambatCount = empTelatCount;
+      emp.totalMenitTerlambat = empTelatMenit;
+
+      grandTotalTerlambatCount += empTelatCount;
+      grandTotalTerlambatMenit += empTelatMenit;
+    });
+
     updateStatValue('statTotalShift', grandTotalShift);
     updateStatValue('statTotalJam', grandTotalJam.toFixed(1) + ' Jam');
     updateStatValue('statTotalTerlambat', grandTotalTerlambatCount + 'x');
     updateStatValue('statTotalMenitTerlambat', grandTotalTerlambatMenit + ' Menit');
 
     renderTable();
+
+    if (activeModalKey && calculatedSummary[activeModalKey]) {
+      const activeData = calculatedSummary[activeModalKey];
+      const summaryEl = document.getElementById('modalStatsSummary');
+      if (summaryEl) {
+        summaryEl.innerHTML = `
+          Total Kejadian Telat Aktif: <strong>${activeData.terlambatCount} kali</strong> | Total Keterlambatan: <strong>${activeData.totalMenitTerlambat} Menit</strong>
+        `;
+      }
+    }
+  }
+
+  function toggleIzinTelat(empKey, index, isChecked) {
+    if (calculatedSummary[empKey] && calculatedSummary[empKey].rincianTerlambat[index]) {
+      calculatedSummary[empKey].rincianTerlambat[index].isIzin = isChecked;
+      hitungUlangRingkasanGlobal();
+
+      const rowEl = document.getElementById(`modalRow_${index}`);
+      const textLateEl = document.getElementById(`modalLateText_${index}`);
+      if (rowEl && textLateEl) {
+        if (isChecked) {
+          rowEl.classList.add('row-izin');
+          textLateEl.innerHTML = `<span class="badge-izin">Izin Telat</span>`;
+        } else {
+          rowEl.classList.remove('row-izin');
+          const menit = calculatedSummary[empKey].rincianTerlambat[index].menitTerlambat;
+          textLateEl.innerHTML = `+${menit} Mnt`;
+        }
+      }
+    }
   }
 
   function updateStatValue(id, value) {
     const el = document.getElementById(id);
+    if (!el) return;
     el.innerText = value;
     el.classList.remove('pulse');
     void el.offsetWidth;
@@ -1681,30 +1786,44 @@
     const data = calculatedSummary[key];
     if (!data) return;
 
+    activeModalKey = key;
     document.getElementById('modalTitle').innerText = `Rincian: ${data.nama} (${data.outlet})`;
     document.getElementById('modalStatsSummary').innerHTML = `
-      Total Kejadian Telat: <strong>${data.terlambatCount} kali</strong> | Total Keterlambatan: <strong>${data.totalMenitTerlambat} Menit</strong>
+      Total Kejadian Telat Aktif: <strong>${data.terlambatCount} kali</strong> | Total Keterlambatan: <strong>${data.totalMenitTerlambat} Menit</strong>
     `;
 
     const tbody = document.getElementById('modalTableBody');
     tbody.innerHTML = '';
 
     if (data.rincianTerlambat.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--accent); padding: 18px; font-size: 13.5px;">Karyawan ini tidak pernah terlambat.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--accent); padding: 18px; font-size: 13.5px;">Karyawan ini tidak memiliki catatan keterlambatan.</td></tr>`;
     } else {
-      data.rincianTerlambat.forEach(r => {
+      data.rincianTerlambat.forEach((r, idx) => {
         const badgeDay = r.isWeekend 
           ? `<span class="badge-weekend">Weekend</span>` 
           : `<span class="badge-weekday">Weekday</span>`;
 
         const tr = document.createElement('tr');
+        tr.id = `modalRow_${idx}`;
+        if (r.isIzin) tr.classList.add('row-izin');
+
+        const lateContent = r.isIzin
+          ? `<span class="badge-izin">Izin Telat</span>`
+          : `+${r.menitTerlambat} Mnt`;
+
         tr.innerHTML = `
           <td><strong>${r.tanggal}</strong></td>
           <td>${r.hari} ${badgeDay}</td>
           <td>${r.shift}</td>
           <td class="center">${r.jadwalMasuk}</td>
           <td class="center" style="color: var(--danger); font-weight: bold;">${r.absenMasuk}</td>
-          <td class="number" style="color: var(--danger); font-weight: bold;">+${r.menitTerlambat} Mnt</td>
+          <td class="number text-late" id="modalLateText_${idx}" style="color: var(--danger); font-weight: bold;">${lateContent}</td>
+          <td class="center">
+            <label class="checkbox-izin-label" title="Centang jika keterlambatan ini diampuni/izin">
+              <input type="checkbox" class="checkbox-izin" ${r.isIzin ? 'checked' : ''} onchange="toggleIzinTelat('${data.key}', ${idx}, this.checked)">
+              <span>Izin</span>
+            </label>
+          </td>
         `;
         tbody.appendChild(tr);
       });
@@ -1715,6 +1834,7 @@
 
   function tutupModal() {
     document.getElementById('detailModal').style.display = 'none';
+    activeModalKey = null;
   }
 
   function eksporKeExcel() {
@@ -1726,7 +1846,7 @@
     }
 
     const sheetDataRingkasan = [
-      ["No", "Nama Karyawan", "Outlet", "Total Kehadiran", "Total Jam Kerja (Jam)", "Jml Terlambat (Kali)", "Total Terlambat (Menit)"]
+      ["No", "Nama Karyawan", "Outlet", "Total Kehadiran", "Total Jam Kerja (Jam)", "Jml Terlambat Aktif (Kali)", "Total Terlambat Aktif (Menit)"]
     ];
 
     items.forEach((item, index) => {
@@ -1742,7 +1862,7 @@
     });
 
     const sheetDataRincian = [
-      ["No", "Nama Karyawan", "Outlet", "Tanggal", "Hari", "Tipe Hari", "Sesi Shift", "Jadwal Masuk", "Absen Masuk", "Menit Terlambat"]
+      ["No", "Nama Karyawan", "Outlet", "Tanggal", "Hari", "Tipe Hari", "Sesi Shift", "Jadwal Masuk", "Absen Masuk", "Menit Terlambat", "Status Izin"]
     ];
 
     let noLog = 1;
@@ -1758,7 +1878,8 @@
           r.shift,
           r.jadwalMasuk,
           r.absenMasuk,
-          r.menitTerlambat
+          r.isIzin ? 0 : r.menitTerlambat,
+          r.isIzin ? "Izin (Diampuni)" : "Terlambat"
         ]);
       });
     });
@@ -1825,7 +1946,7 @@
       startY: 78,
       theme: 'grid',
       headStyles: {
-        fillColor: [88, 71, 224], // Deep Accent Purple Resmi
+        fillColor: [88, 71, 224],
         textColor: 255,
         fontSize: 8.5,
         fontStyle: 'bold',
