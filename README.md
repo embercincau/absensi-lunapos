@@ -10,13 +10,13 @@ Aplikasi web berbasis *client-side* untuk mengolah dan merekapitulasi data lapor
 
 ## 📌 Fitur Utama
 
-* **Pencocokan Shift Otomatis**: Menghitung keterlambatan dengan mencocokkan jam masuk aktual karyawan ke jadwal shift terdekat untuk hari kerja (*Weekday*) maupun akhir pekan (*Weekend*).
-* **Toleransi Keterlambatan**: Konfigurasi menit toleransi keterlambatan sesuai kebijakan outlet.
-* **Filter & Pencarian**: Filter ringkasan data berdasarkan outlet serta pencarian nama karyawan secara *real-time*.
-* **Popup Log Detail**: Rincian riwayat keterlambatan karyawan (tanggal, hari, shift, jam jadwal, jam aktual, dan menit telat) yang tersusun kronologis dari tanggal awal ke terbaru.
-* **Ekspor Laporan**: Unduh hasil rekapitulasi ke format **Excel (.xlsx)** (termasuk ringkasan & log detail) dan format **PDF**.
+* **Jadwal Shift Fleksibel per Hari**: Konfigurasi jam masuk resmi yang dapat dipilih berlaku pada hari-hari tertentu (Senin–Minggu) dan otomatis tersimpan di penyimpanan lokal (*localStorage*).
+* **Toleransi Keterlambatan**: Pengaturan batas toleransi keterlambatan dalam hitungan menit.
+* **Fitur Izin Telat**: Checkbox status izin pada log detail keterlambatan untuk mengampuni/mengabaikan keterlambatan pada tanggal tertentu secara *real-time*.
+* **Formulir Kritik & Saran**: Form masukan terintegrasi yang mengirim pesan langsung ke Google Sheets.
+* **Ekspor Laporan Resmi**: Unduh hasil rekapitulasi ke format **Excel (.xlsx)** (lengkap dengan status izin) dan format **PDF** berstandar dokumen resmi dengan kop laporan serta kolom tanda tangan *approval*.
 * **Mode Gelap / Terang**: Dilengkapi *switch toggle* tema geser.
-* **100% Client-Side & Aman**: Pemrosesan file `.xlsx`, `.xls`, atau `.csv` berjalan langsung di perangkat pengguna tanpa mengunggah data ke server luar.
+* **100% Client-Side & Aman**: Pemrosesan file `.xlsx`, `.xls`, atau `.csv` berjalan langsung di perangkat pengguna.
 
 ---
 
@@ -26,15 +26,18 @@ Aplikasi web berbasis *client-side* untuk mengolah dan merekapitulasi data lapor
 * **JavaScript (ES6+)**
 * [SheetJS (xlsx.full.min.js)](https://sheetjs.com/) – Pembacaan dan pembuatan file Excel
 * [jsPDF & jsPDF-AutoTable](https://github.com/parallax/jsPDF) – Pembuatan dokumen laporan PDF
+* **Google Apps Script** – Integrasi pencatatan log akses dan kritik/saran ke Google Sheets
 
 ---
 
 ## 🚀 Cara Penggunaan
 
 1. Buka file `index.html` pada peramban web atau akses melalui GitHub Pages.
-2. Atur jam masuk pada **Master Jadwal Shift Kerja** dan tentukan batas **Toleransi Keterlambatan** (opsional).
-3. Unggah file laporan absensi LUNAPOS format `.xlsx`, `.xls`, atau `.csv`.
-4. Lihat ringkasan dashboard, klik nama karyawan untuk melihat detail, atau unduh laporan dalam format Excel / PDF.
+2. Sesuaikan jam masuk serta hari aktif pada **Master Jadwal Shift Kerja** (pengaturan tersimpan otomatis di perangkat).
+3. Atur batas **Toleransi Keterlambatan** jika diperlukan.
+4. Unggah file laporan absensi LUNAPOS format `.xlsx`, `.xls`, atau `.csv`.
+5. Lihat ringkasan dashboard, gunakan pencarian/filter outlet, klik nama karyawan untuk melihat detail atau menandai **Izin Telat**.
+6. Unduh laporan dalam format **Excel** atau **PDF**.
 
 ---
 
