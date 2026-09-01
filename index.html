@@ -128,18 +128,22 @@
     }
     .config-header h3 { margin: 0; color: var(--ink); font-size: 14.5px; font-weight: 700; }
 
-    /* Item Card Shift */
     .shift-row {
-      display: grid;
-      grid-template-columns: 1.5fr 1.2fr 1.2fr auto;
-      align-items: end;
+      display: flex;
+      flex-direction: column;
       gap: 12px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       background: var(--surface);
-      padding: 12px 14px;
+      padding: 14px 16px;
       border-radius: var(--radius-sm);
       border: 1px solid var(--border);
       box-shadow: var(--shadow-sm);
+    }
+    .shift-main-inputs {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr auto;
+      gap: 12px;
+      align-items: end;
     }
     .input-field-group {
       display: flex;
@@ -165,6 +169,46 @@
       outline: none;
       border-color: var(--accent);
       box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .shift-days-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border);
+    }
+    .shift-days-selector span.days-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-right: 4px;
+    }
+    .day-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+    .day-pill:hover {
+      border-color: var(--accent);
+    }
+    .day-pill input[type="checkbox"] {
+      cursor: pointer;
+      accent-color: var(--accent);
+      width: 14px;
+      height: 14px;
+      margin: 0;
     }
 
     .btn-group {
@@ -641,24 +685,6 @@
       padding: 22px;
       overflow-y: auto;
     }
-    .badge-weekend {
-      background: var(--warn-soft);
-      color: var(--warn);
-      font-size: 10.5px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 20px;
-      margin-left: 5px;
-    }
-    .badge-weekday {
-      background: var(--teal-soft);
-      color: var(--teal);
-      font-size: 10.5px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 20px;
-      margin-left: 5px;
-    }
 
     .tutorial-step {
       background: var(--surface-muted);
@@ -680,7 +706,7 @@
       font-weight: 600;
     }
 
-    /* Form Feedback Modal */
+    /* Form Modal */
     .form-group {
       display: flex;
       flex-direction: column;
@@ -739,12 +765,9 @@
         text-align: center;
         padding: 10px;
       }
-      .shift-row {
+      .shift-main-inputs {
         grid-template-columns: 1fr;
         gap: 10px;
-        background: var(--surface-muted);
-        border: 1px solid var(--border);
-        padding: 14px;
       }
       .btn-del {
         width: 100%;
@@ -811,15 +834,15 @@
   <div class="header-area">
     <div class="header-title">
       <h1>Rekap Absensi di sistem LUNAPOS</h1>
-      <p class="sub-header">Jam masuk aktual dicocokkan otomatis ke jadwal shift terdekat</p>
+      <p class="sub-header">Jam masuk aktual dicocokkan otomatis ke jadwal shift aktif di hari terkait</p>
     </div>
   </div>
 
-  <!-- 1. Konfigurasi Jadwal Shift -->
+  <!-- 1. Konfigurasi Jadwal Shift Fleksibel dengan Pilihan Hari -->
   <div class="config-card">
     <div class="config-header">
       <div>
-        <h3 style="display: inline-block;">Master Jadwal Shift Kerja</h3>
+        <h3 style="display: inline-block;">Master Jadwal Shift Kerja (Pilihan Hari Fleksibel)</h3>
       </div>
       <div class="btn-group">
         <button class="btn btn-feedback" onclick="bukaModalFeedback()">💬 Kritik &amp; Saran</button>
@@ -964,51 +987,51 @@
     </div>
     <div class="modal-body">
       <div class="tutorial-step">
-        <h4>1. Sesuaikan Master Jadwal Shift</h4>
+        <h4>1. Atur Jadwal Shift Fleksibel per Hari</h4>
         <p>
-          Atur jam masuk resmi outlet Anda untuk hari <strong>Weekday (Senin–Jumat)</strong> dan <strong>Weekend (Sabtu–Minggu)</strong>. Anda juga dapat menambah atau menghapus shift sesuai kebutuhan.
+          Tentukan jam masuk resmi dan pilih hari aktif (Sen, Sel, Rab, Kam, Jum, Sab, Min) untuk setiap shift. Jam masuk aktual karyawan pada hari tertentu akan otomatis dicocokkan dengan shift yang aktif di hari tersebut.
         </p>
       </div>
 
       <div class="tutorial-step">
         <h4>2. Atur Toleransi Keterlambatan (Opsional)</h4>
         <p>
-          Tentukan batas toleransi keterlambatan (dalam menit). Sistem hanya akan menghitung telat jika selisih jam masuk aktual melebihi angka toleransi ini.
+          Tentukan batas toleransi keterlambatan (dalam menit). Karyawan hanya dihitung telat jika selisih waktu masuk aktual melebihi batas toleransi ini.
         </p>
       </div>
 
       <div class="tutorial-step">
         <h4>3. Unggah File Excel Absensi LUNAPOS</h4>
         <p>
-          Pilih atau tarik file laporan absensi dari LUNAPOS (<span class="tutorial-badge">.xlsx</span>, <span class="tutorial-badge">.xls</span>, atau <span class="tutorial-badge">.csv</span>). Seluruh pemrosesan berjalan langsung di browser secara aman.
+          Pilih atau tarik file laporan absensi dari LUNAPOS (.xlsx, .xls, atau .csv). Seluruh pemrosesan berjalan langsung di browser secara aman.
         </p>
       </div>
 
       <div class="tutorial-step">
         <h4>4. Filter Outlet &amp; Pencarian Karyawan</h4>
         <p>
-          Gunakan dropdown filter outlet dan kotak pencarian nama untuk melihat rekapitulasi data kehadiran, jam kerja, dan jumlah keterlambatan secara instan.
+          Gunakan filter outlet dan kotak pencarian nama untuk melihat rekapitulasi data kehadiran, jam kerja, dan frekuensi keterlambatan secara instan.
         </p>
       </div>
 
       <div class="tutorial-step">
         <h4>5. Log Rincian &amp; Fitur Izin Telat</h4>
         <p>
-          Klik pada nama karyawan (teks ungu) untuk membuka log rincian tanggal telat. Centang kotak <strong>Izin Telat</strong> jika keterlambatan pada tanggal tersebut telah diampuni/disetujui — total menit dan frekuensi telat akan otomatis berkurang secara langsung.
+          Klik pada nama karyawan (teks ungu) untuk melihat log detail jam masuk per tanggal. Centang kotak <strong>Izin Telat</strong> jika keterlambatan pada tanggal tersebut diampuni/disetujui — total menit dan frekuensi telat akan langsung berkurang secara otomatis.
         </p>
       </div>
 
       <div class="tutorial-step">
         <h4>6. Ekspor Laporan Resmi</h4>
         <p>
-          Unduh hasil rekap dalam format <span class="tutorial-badge">Unduh Excel</span> (termasuk status izin per tanggal) atau <span class="tutorial-badge">Unduh PDF</span> yang sudah dilengkapi kop resmi dan kolom tanda tangan approval.
+          Unduh hasil rekap dalam format Unduh Excel (lengkap dengan ringkasan &amp; status izin per tanggal) atau Unduh PDF dengan format dokumen resmi bertanda tangan approval.
         </p>
       </div>
 
       <div class="tutorial-step">
         <h4>7. Kritik &amp; Saran</h4>
         <p>
-          Gunakan tombol <span class="tutorial-badge">💬 Kritik &amp; Saran</span> di bagian atas untuk mengirimkan masukan atau melaporkan kendala penggunaan secara langsung.
+          Gunakan tombol 💬 Kritik &amp; Saran untuk mengirimkan masukan atau melaporkan kendala penggunaan langsung ke Google Spreadsheet.
         </p>
       </div>
     </div>
@@ -1063,7 +1086,7 @@
 
 <script>
   // Tempelkan Web App URL Google Apps Script Anda di sini:
-  const GOOGLE_SCRIPT_URL = "URL_GOOGLE_APPS_SCRIPT_ANDA_DI_SINI";
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzdFbjD2C_TRC_k59F5dNeOJ35TiX8ykMkiFs5-NLHlU-mQsWyBFUd4Yv5S-SNkE1US/exec";
 
   let rawData = [];
   let calculatedSummary = {};
@@ -1071,6 +1094,7 @@
   let currentSortDir = 'asc';
   let confirmCallback = null;
   let activeModalKey = null;
+  let detectedOutletName = "";
 
   function toggleDarkMode(isDark) {
     if (typeof isDark === 'undefined') {
@@ -1105,9 +1129,8 @@
   })();
 
   const defaultShifts = [
-    { nama: 'Pagi', jamWeekday: '09:30', jamWeekend: '09:30' },
-    { nama: 'Middle', jamWeekday: '11:00', jamWeekend: '11:00' },
-    { nama: 'Siang', jamWeekday: '14:00', jamWeekend: '14:00' }
+    { nama: 'Pagi', jam: '00:00', days: [1, 2, 3, 4, 5, 6, 0] },
+    { nama: 'Siang', jam: '00:00', days: [1, 2, 3, 4, 5, 6, 0] }
   ];
 
   function setLastUpdateInfo() {
@@ -1127,28 +1150,48 @@
   function renderShiftInputs(shifts) {
     const container = document.getElementById('shiftListContainer');
     container.innerHTML = '';
-    shifts.forEach(s => tambahBarisShift(s.nama, s.jamWeekday, s.jamWeekend));
+    shifts.forEach(s => tambahBarisShift(s.nama, s.jam, s.days));
   }
 
-  function tambahBarisShift(nama = '', jamWeekday = '09:00', jamWeekend = '09:00') {
+  function tambahBarisShift(nama = '', jam = '00:00', days = [1, 2, 3, 4, 5, 6, 0]) {
     const container = document.getElementById('shiftListContainer');
     const row = document.createElement('div');
     row.className = 'shift-row';
+
+    const dayLabels = [
+      { day: 1, label: 'Sen' },
+      { day: 2, label: 'Sel' },
+      { day: 3, label: 'Rab' },
+      { day: 4, label: 'Kam' },
+      { day: 5, label: 'Jum' },
+      { day: 6, label: 'Sab' },
+      { day: 0, label: 'Min' }
+    ];
+
+    let daysCheckboxes = dayLabels.map(d => `
+      <label class="day-pill">
+        <input type="checkbox" class="shift-day-cb" value="${d.day}" ${days.includes(d.day) ? 'checked' : ''} onchange="if(rawData.length) jalankanKalkulasi();">
+        <span>${d.label}</span>
+      </label>
+    `).join('');
+
     row.innerHTML = `
-      <div class="input-field-group">
-        <label>Nama Shift:</label>
-        <input type="text" placeholder="contoh: Pagi / Siang" value="${nama}" onchange="if(rawData.length) jalankanKalkulasi();">
+      <div class="shift-main-inputs">
+        <div class="input-field-group">
+          <label>Nama Shift:</label>
+          <input type="text" class="shift-name-input" placeholder="contoh: Pagi / Siang" value="${nama}" onchange="if(rawData.length) jalankanKalkulasi();">
+        </div>
+        <div class="input-field-group">
+          <label>Jadwal Jam Masuk:</label>
+          <input type="time" class="shift-time-input" value="${jam}" onchange="if(rawData.length) jalankanKalkulasi();">
+        </div>
+        <div>
+          <button class="btn btn-del" onclick="this.closest('.shift-row').remove(); if(rawData.length) jalankanKalkulasi();">Hapus</button>
+        </div>
       </div>
-      <div class="input-field-group">
-        <label>Jam Weekday (Sen-Jum):</label>
-        <input type="time" value="${jamWeekday}" onchange="if(rawData.length) jalankanKalkulasi();">
-      </div>
-      <div class="input-field-group">
-        <label>Jam Weekend (Sab-Min):</label>
-        <input type="time" value="${jamWeekend}" onchange="if(rawData.length) jalankanKalkulasi();">
-      </div>
-      <div>
-        <button class="btn btn-del" onclick="this.closest('.shift-row').remove(); if(rawData.length) jalankanKalkulasi();">Hapus</button>
+      <div class="shift-days-selector">
+        <span class="days-title">Berlaku di Hari:</span>
+        ${daysCheckboxes}
       </div>
     `;
     container.appendChild(row);
@@ -1164,6 +1207,7 @@
     rawData = [];
     calculatedSummary = {};
     activeModalKey = null;
+    detectedOutletName = "";
     document.getElementById('excelFile').value = '';
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('tableBody').innerHTML = '';
@@ -1213,6 +1257,9 @@
   function bukaModalFeedback() {
     document.getElementById('feedbackModal').style.display = 'flex';
     document.getElementById('feedbackStatus').style.display = 'none';
+    if (detectedOutletName) {
+      document.getElementById('feedbackOutlet').value = detectedOutletName;
+    }
   }
 
   function tutupModalFeedback() {
@@ -1226,7 +1273,7 @@
       return;
     }
 
-    const outlet = document.getElementById('feedbackOutlet').value.trim();
+    const outlet = document.getElementById('feedbackOutlet').value.trim() || detectedOutletName;
     const pesan = document.getElementById('feedbackPesan').value.trim();
     const btn = document.getElementById('feedbackSubmitBtn');
     const statusEl = document.getElementById('feedbackStatus');
@@ -1240,7 +1287,7 @@
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ outlet: outlet, pesan: pesan })
+        body: JSON.stringify({ type: "feedback", outlet: outlet, pesan: pesan })
       });
 
       statusEl.style.display = 'block';
@@ -1263,42 +1310,66 @@
     }
   }
 
+  function kirimLogAksesOtomatis(outletName, fileName, totalRows) {
+    if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("URL_GOOGLE_APPS_SCRIPT")) return;
+    try {
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "upload",
+          outlet: outletName || "Tidak Diketahui",
+          fileName: fileName || "-",
+          totalRows: totalRows || 0
+        })
+      });
+    } catch (err) {
+      console.warn("Log background gagal dikirim:", err);
+    }
+  }
+
   function ambilDaftarShift() {
     const rows = document.querySelectorAll('#shiftListContainer .shift-row');
     const shifts = [];
     rows.forEach(r => {
-      const inputs = r.querySelectorAll('input');
-      const nama = inputs[0].value.trim();
-      const jamWeekday = inputs[1].value;
-      const jamWeekend = inputs[2].value;
-      if (jamWeekday && jamWeekend) {
+      const nameInput = r.querySelector('.shift-name-input');
+      const timeInput = r.querySelector('.shift-time-input');
+      const dayCheckboxes = r.querySelectorAll('.shift-day-cb:checked');
+
+      const nama = nameInput ? nameInput.value.trim() : '';
+      const jam = timeInput ? timeInput.value : '';
+      const activeDays = Array.from(dayCheckboxes).map(cb => parseInt(cb.value, 10));
+
+      if (jam) {
         shifts.push({
           nama: nama || 'Shift',
-          jamWeekday: jamWeekday,
-          jamWeekend: jamWeekend,
-          menitWeekday: parseMenitDariStringWaktu(jamWeekday),
-          menitWeekend: parseMenitDariStringWaktu(jamWeekend)
+          jam: jam,
+          menit: parseMenitDariStringWaktu(jam),
+          activeDays: activeDays
         });
       }
     });
     return shifts;
   }
 
-  function cariShiftTerdekat(menitMasuk, isWeekendFlag, daftarShift) {
+  function cariShiftTerdekat(menitMasuk, dayIndex, daftarShift) {
     if (!daftarShift || daftarShift.length === 0 || menitMasuk === null) return null;
+
+    let shiftHariIni = daftarShift.filter(s => s.activeDays.includes(dayIndex));
+    if (shiftHariIni.length === 0) shiftHariIni = daftarShift;
 
     let shiftTerpilih = null;
     let jarakTerkecil = Infinity;
 
-    daftarShift.forEach(s => {
-      const targetMenit = isWeekendFlag ? s.menitWeekend : s.menitWeekday;
-      const jarak = Math.abs(menitMasuk - targetMenit);
+    shiftHariIni.forEach(s => {
+      const jarak = Math.abs(menitMasuk - s.menit);
       if (jarak < jarakTerkecil) {
         jarakTerkecil = jarak;
         shiftTerpilih = {
           nama: s.nama,
-          targetMenit: targetMenit,
-          jadwalStr: isWeekendFlag ? s.jamWeekend : s.jamWeekday
+          targetMenit: s.menit,
+          jadwalStr: s.jam
         };
       }
     });
@@ -1307,7 +1378,7 @@
   }
 
   function parseTanggalInfo(tglVal) {
-    if (!tglVal) return { isWeekend: false, labelTgl: '-', namaHari: '-', rawTime: 0 };
+    if (!tglVal) return { labelTgl: '-', namaHari: '-', dayIndex: 0, rawTime: 0 };
 
     let dateObj = null;
     let labelTgl = tglVal.toString().trim();
@@ -1338,14 +1409,14 @@
     if (dateObj && !isNaN(dateObj.getTime())) {
       const dayIndex = dateObj.getDay();
       return {
-        isWeekend: (dayIndex === 0 || dayIndex === 6),
         labelTgl: labelTgl,
         namaHari: hariIndo[dayIndex],
+        dayIndex: dayIndex,
         rawTime: dateObj.getTime()
       };
     }
 
-    return { isWeekend: false, labelTgl: labelTgl, namaHari: '-', rawTime: 0 };
+    return { labelTgl: labelTgl, namaHari: '-', dayIndex: 0, rawTime: 0 };
   }
 
   function formatDisplayWaktu(str) {
@@ -1452,6 +1523,12 @@
           rawData = parsedData;
           isiDropdownOutlet();
           jalankanKalkulasi();
+
+          // Deteksi outlet utama & kirim log background diam-diam
+          const outletKey = Object.keys(rawData[0]).find(k => k.toLowerCase().includes('outlet')) || 'Outlet';
+          detectedOutletName = rawData[0][outletKey] ? rawData[0][outletKey].toString().trim() : 'Outlet Tidak Bernama';
+          kirimLogAksesOtomatis(detectedOutletName, file.name, rawData.length);
+
           document.getElementById('dashboard').style.display = 'block';
           tampilkanStatusUpload('success', `Berhasil memuat ${rawData.length} baris data dari "${file.name}".`);
         } catch (err) {
@@ -1530,7 +1607,6 @@
     const selectedOutlet = document.getElementById('filterOutlet').value;
     const toleransi = parseInt(document.getElementById('toleranceInput').value, 10) || 0;
 
-    // Simpan status izin sebelumnya jika ada re-kalkulasi
     const prevIzinMap = {};
     Object.values(calculatedSummary).forEach(emp => {
       emp.rincianTerlambat.forEach(r => {
@@ -1561,7 +1637,7 @@
       const tglInfo = parseTanggalInfo(tglVal);
       const menitMasukAktual = parseMenitDariStringWaktu(absenMasukStr);
 
-      const shiftTerpilih = cariShiftTerdekat(menitMasukAktual, tglInfo.isWeekend, daftarShift);
+      const shiftTerpilih = cariShiftTerdekat(menitMasukAktual, tglInfo.dayIndex, daftarShift);
 
       let menitTerlambat = 0;
       let isTerlambat = false;
@@ -1603,7 +1679,6 @@
         calculatedSummary[key].rincianTerlambat.push({
           tanggal: tglInfo.labelTgl,
           hari: tglInfo.namaHari,
-          isWeekend: tglInfo.isWeekend,
           shift: namaShiftDipakai,
           jadwalMasuk: jadwalMasukStr,
           absenMasuk: formattedAbsen,
@@ -1799,10 +1874,6 @@
       tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--accent); padding: 18px; font-size: 13.5px;">Karyawan ini tidak memiliki catatan keterlambatan.</td></tr>`;
     } else {
       data.rincianTerlambat.forEach((r, idx) => {
-        const badgeDay = r.isWeekend 
-          ? `<span class="badge-weekend">Weekend</span>` 
-          : `<span class="badge-weekday">Weekday</span>`;
-
         const tr = document.createElement('tr');
         tr.id = `modalRow_${idx}`;
         if (r.isIzin) tr.classList.add('row-izin');
@@ -1813,7 +1884,7 @@
 
         tr.innerHTML = `
           <td><strong>${r.tanggal}</strong></td>
-          <td>${r.hari} ${badgeDay}</td>
+          <td>${r.hari}</td>
           <td>${r.shift}</td>
           <td class="center">${r.jadwalMasuk}</td>
           <td class="center" style="color: var(--danger); font-weight: bold;">${r.absenMasuk}</td>
@@ -1862,7 +1933,7 @@
     });
 
     const sheetDataRincian = [
-      ["No", "Nama Karyawan", "Outlet", "Tanggal", "Hari", "Tipe Hari", "Sesi Shift", "Jadwal Masuk", "Absen Masuk", "Menit Terlambat", "Status Izin"]
+      ["No", "Nama Karyawan", "Outlet", "Tanggal", "Hari", "Sesi Shift", "Jadwal Masuk", "Absen Masuk", "Menit Terlambat", "Status Izin"]
     ];
 
     let noLog = 1;
@@ -1874,7 +1945,6 @@
           item.outlet,
           r.tanggal,
           r.hari,
-          r.isWeekend ? "Weekend" : "Weekday",
           r.shift,
           r.jadwalMasuk,
           r.absenMasuk,
@@ -1907,13 +1977,11 @@
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
-    // Informasi Filter & Tanggal
     const selectedOutlet = document.getElementById('filterOutlet').value;
-    const outletText = selectedOutlet === 'ALL' ? 'Semua Outlet' : selectedOutlet;
+    const outletText = selectedOutlet === 'ALL' ? (detectedOutletName || 'Semua Outlet') : selectedOutlet;
     const today = new Date();
     const tglCetak = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
-    // Kop Dokumen Resmi
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(20, 24, 38);
@@ -1924,12 +1992,10 @@
     doc.setTextColor(85, 95, 115);
     doc.text(`Sumber Data: Sistem LUNAPOS   |   Outlet: ${outletText}   |   Tanggal Cetak: ${tglCetak}`, pageWidth / 2, 58, { align: "center" });
 
-    // Garis Kop Pembatas
     doc.setDrawColor(210, 215, 228);
     doc.setLineWidth(1);
     doc.line(36, 68, pageWidth - 36, 68);
 
-    // Data Tabel
     const rows = items.map((item, idx) => [
       idx + 1,
       item.nama,
@@ -1974,7 +2040,6 @@
       margin: { left: 36, right: 36, bottom: 120 }
     });
 
-    // Periksa sisa ruang halaman untuk Kolom Tanda Tangan
     let finalY = doc.lastAutoTable.finalY + 28;
     if (finalY + 95 > pageHeight - 35) {
       doc.addPage();
@@ -1989,21 +2054,18 @@
     doc.setFont("helvetica", "normal");
     doc.setTextColor(30, 35, 45);
 
-    // Tanda Tangan Kiri (Pembuat)
     doc.text("Dibuat Oleh,", colLeft, ttdY);
     doc.text("Supervisor / PIC Absensi", colLeft, ttdY + 12);
 
     doc.line(colLeft, ttdY + 62, colLeft + 125, ttdY + 62);
     doc.text("( ................................................ )", colLeft, ttdY + 74);
 
-    // Tanda Tangan Kanan (Mengetahui / Approval)
     doc.text(`Dicetak: ${tglCetak}`, colRight, ttdY);
     doc.text("Mengetahui / Disetujui,", colRight, ttdY + 12);
 
     doc.line(colRight, ttdY + 62, colRight + 125, ttdY + 62);
     doc.text("( ................................................ )", colRight, ttdY + 74);
 
-    // Footer Nomor Halaman
     const totalPages = doc.internal.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
